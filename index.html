@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISE — Interactive Skills Enhancer</title>
+<style>
+/* ======================== RESET & BASE ======================== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0a0e27;--navy-light:#131940;--purple:#6c3ce0;--purple-light:#8b5cf6;
+  --blue:#3b82f6;--cyan:#06b6d4;--teal:#14b8a6;--pink:#ec4899;
+  --glass:rgba(255,255,255,0.06);--glass-border:rgba(255,255,255,0.1);
+  --text:#e2e8f0;--text-muted:#94a3b8;--white:#f8fafc;
+  --green:#22c55e;--amber:#f59e0b;--red-soft:#f87171;
+  --radius:16px;--radius-sm:10px;--radius-xs:6px;
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--navy);color:var(--text);line-height:1.6;overflow-x:hidden}
+a{color:var(--purple-light);text-decoration:none}
+img{max-width:100%;display:block}
+h1,h2,h3,h4,h5{color:var(--white);line-height:1.2}
+
+/* ======================== UTILITIES ======================== */
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+.section{padding:100px 0}
+.section-label{display:inline-flex;align-items:center;gap:8px;font-size:.75rem;text-transform:uppercase;letter-spacing:2px;color:var(--purple-light);margin-bottom:12px;font-weight:600}
+.section-title{font-size:clamp(1.8rem,4vw,2.8rem);margin-bottom:16px;font-weight:700}
+.section-subtitle{font-size:1.1rem;color:var(--text-muted);max-width:640px;line-height:1.7}
+.glass{background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.gradient-text{background:linear-gradient(135deg,var(--purple-light),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border-radius:50px;font-size:1rem;font-weight:600;border:none;cursor:pointer;transition:all .3s ease;text-decoration:none}
+.btn-primary{background:linear-gradient(135deg,var(--purple),var(--blue));color:#fff;box-shadow:0 4px 24px rgba(108,60,224,.4)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(108,60,224,.55)}
+.btn-secondary{background:var(--glass);color:var(--white);border:1px solid var(--glass-border)}
+.btn-secondary:hover{background:rgba(255,255,255,.1);transform:translateY(-2px)}
+.btn-sm{padding:10px 22px;font-size:.9rem}
+.hidden{display:none!important}
+
+/* ======================== ANIMATIONS ======================== */
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:translateX(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+@keyframes rotateSlow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes barGrow{from{width:0}to{width:var(--w)}}
+@keyframes dash{to{stroke-dashoffset:0}}
+@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(108,60,224,.3)}50%{box-shadow:0 0 40px rgba(108,60,224,.6)}}
+@keyframes typeIn{from{width:0}to{width:100%}}
+@keyframes progressPulse{0%,100%{opacity:.8}50%{opacity:1}}
+.animate-on-scroll{opacity:0;transform:translateY(40px);transition:opacity .7s ease,transform .7s ease}
+.animate-on-scroll.visible{opacity:1;transform:translateY(0)}
+
+/* ======================== NAVIGATION ======================== */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:16px 0;transition:all .3s ease}
+nav.scrolled{background:rgba(10,14,39,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--glass-border)}
+nav .container{display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:10px;font-size:1.25rem;font-weight:700;color:var(--white)}
+.nav-logo .logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--purple),var(--blue));display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:800;color:#fff}
+.nav-links{display:flex;align-items:center;gap:32px;list-style:none}
+.nav-links a{color:var(--text-muted);font-size:.9rem;transition:color .3s}
+.nav-links a:hover{color:var(--white)}
+.nav-cta .btn{padding:10px 24px;font-size:.85rem}
+.mobile-toggle{display:none;background:none;border:none;color:var(--white);font-size:1.5rem;cursor:pointer}
+
+/* ======================== HERO ======================== */
+.hero{min-height:100vh;display:flex;align-items:center;position:relative;overflow:hidden;padding-top:80px}
+.hero-bg{position:absolute;inset:0;z-index:0}
+.hero-bg .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35}
+.hero-bg .orb-1{width:500px;height:500px;background:var(--purple);top:-10%;right:-5%;animation:float 8s ease-in-out infinite}
+.hero-bg .orb-2{width:400px;height:400px;background:var(--blue);bottom:-10%;left:-10%;animation:float 10s ease-in-out infinite 2s}
+.hero-bg .orb-3{width:300px;height:300px;background:var(--cyan);top:40%;left:30%;animation:float 9s ease-in-out infinite 1s}
+.hero .container{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;position:relative;z-index:1}
+.hero-content{animation:slideUp .8s ease}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(108,60,224,.15);border:1px solid rgba(108,60,224,.3);border-radius:50px;padding:6px 16px;font-size:.8rem;color:var(--purple-light);margin-bottom:24px}
+.hero-tag .dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+.hero h1{font-size:clamp(2.2rem,5vw,3.5rem);margin-bottom:20px;font-weight:800;line-height:1.1}
+.hero p{font-size:1.15rem;color:var(--text-muted);margin-bottom:36px;max-width:520px;line-height:1.7}
+.hero-buttons{display:flex;gap:16px;flex-wrap:wrap}
+.hero-visual{position:relative;animation:slideUp 1s ease .2s both}
+.world-container{position:relative;width:100%;aspect-ratio:1.2;border-radius:var(--radius);overflow:hidden;background:linear-gradient(135deg,rgba(108,60,224,.1),rgba(6,182,212,.08));border:1px solid var(--glass-border)}
+.world-container canvas{width:100%;height:100%}
+
+/* ======================== SCENE CARDS IN HERO ======================== */
+.vr-scene{position:relative;width:100%;height:100%;overflow:hidden;background:linear-gradient(180deg,#0d1130 0%,#1a1145 40%,#0f2027 100%)}
+.scene-ground{position:absolute;bottom:0;left:0;right:0;height:35%;background:linear-gradient(180deg,rgba(20,184,166,.12),rgba(20,184,166,.04));border-top:1px solid rgba(20,184,166,.2)}
+.scene-ground::before{content:'';position:absolute;top:0;left:10%;right:10%;height:2px;background:linear-gradient(90deg,transparent,rgba(20,184,166,.4),transparent)}
+.scene-grid{position:absolute;bottom:0;left:0;right:0;height:35%;background-image:repeating-linear-gradient(90deg,rgba(20,184,166,.08) 0,rgba(20,184,166,.08) 1px,transparent 1px,transparent 60px),repeating-linear-gradient(0deg,rgba(20,184,166,.08) 0,rgba(20,184,166,.08) 1px,transparent 1px,transparent 60px);transform:perspective(400px) rotateX(45deg);transform-origin:center bottom}
+.scene-building{position:absolute;border-radius:12px 12px 4px 4px;transition:all .5s ease}
+.scene-building::after{content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:12px 12px 0 0}
+.building-classroom{width:22%;height:38%;bottom:35%;left:5%;background:linear-gradient(135deg,rgba(108,60,224,.4),rgba(108,60,224,.2));border:1px solid rgba(108,60,224,.3);animation:float 6s ease-in-out infinite}
+.building-classroom::after{background:var(--purple)}
+.building-supermarket{width:24%;height:32%;bottom:35%;left:30%;background:linear-gradient(135deg,rgba(34,197,94,.3),rgba(34,197,94,.15));border:1px solid rgba(34,197,94,.3);animation:float 7s ease-in-out infinite 1s}
+.building-supermarket::after{background:var(--green)}
+.building-crossing{width:14%;height:28%;bottom:35%;left:58%;background:linear-gradient(135deg,rgba(245,158,11,.3),rgba(245,158,11,.15));border:1px solid rgba(245,158,11,.3);animation:float 5s ease-in-out infinite .5s}
+.building-crossing::after{background:var(--amber)}
+.building-busstop{width:20%;height:30%;bottom:35%;left:74%;background:linear-gradient(135deg,rgba(6,182,212,.3),rgba(6,182,212,.15));border:1px solid rgba(6,182,212,.3);animation:float 8s ease-in-out infinite 2s}
+.building-busstop::after{background:var(--cyan)}
+.building-home{width:18%;height:35%;bottom:35%;left:50%;background:linear-gradient(135deg,rgba(236,72,153,.25),rgba(236,72,153,.12));border:1px solid rgba(236,72,153,.25);animation:float 6.5s ease-in-out infinite 1.5s;z-index:1}
+.building-home::after{background:var(--pink)}
+.scene-building .label{position:absolute;top:-28px;left:50%;transform:translateX(-50%);font-size:.65rem;color:var(--text-muted);white-space:nowrap;background:rgba(10,14,39,.8);padding:2px 8px;border-radius:4px;opacity:0;transition:opacity .3s}
+.scene-building:hover .label{opacity:1}
+.child-avatar{position:absolute;bottom:36%;left:48%;width:28px;height:38px;z-index:10;animation:float 3s ease-in-out infinite}
+.child-avatar .head{width:20px;height:20px;background:linear-gradient(135deg,#fbbf24,#f59e0b);border-radius:50%;margin:0 auto;position:relative}
+.child-avatar .head::before{content:'';position:absolute;top:5px;left:3px;width:4px;height:4px;background:#1e293b;border-radius:50%}
+.child-avatar .head::after{content:'';position:absolute;top:5px;right:3px;width:4px;height:4px;background:#1e293b;border-radius:50%}
+.child-avatar .body{width:16px;height:16px;background:linear-gradient(135deg,var(--blue),var(--purple));border-radius:4px 4px 0 0;margin:2px auto 0}
+.child-glow{position:absolute;bottom:32%;left:44%;width:48px;height:48px;border-radius:50%;background:radial-gradient(circle,rgba(108,60,224,.3),transparent 70%);animation:pulse 2s ease-in-out infinite;z-index:9}
+
+/* Floating particles */
+.particle{position:absolute;border-radius:50%;pointer-events:none;animation:float var(--dur) ease-in-out infinite var(--delay)}
+.hero-stats{display:flex;gap:40px;margin-top:48px}
+.hero-stat{text-align:left}
+.hero-stat .num{font-size:1.8rem;font-weight:800;color:var(--white)}
+.hero-stat .lbl{font-size:.8rem;color:var(--text-muted)}
+
+/* ======================== SECTION: WHY ISE ======================== */
+.why-ise{background:linear-gradient(180deg,var(--navy) 0%,var(--navy-light) 100%)}
+.problem-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-top:48px}
+.problem-card{padding:32px;position:relative;overflow:hidden;transition:transform .3s}
+.problem-card:hover{transform:translateY(-4px)}
+.problem-card .icon-wrap{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin-bottom:20px}
+.problem-card:nth-child(1) .icon-wrap{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.2)}
+.problem-card:nth-child(2) .icon-wrap{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.2)}
+.problem-card:nth-child(3) .icon-wrap{background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.2)}
+.problem-card h3{font-size:1.15rem;margin-bottom:10px}
+.problem-card p{color:var(--text-muted);font-size:.95rem}
+.ise-response{margin-top:64px;text-align:center;padding:48px}
+.ise-response h3{font-size:1.5rem;margin-bottom:24px}
+.response-flow{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
+.response-flow .step{padding:12px 24px;border-radius:50px;font-weight:600;font-size:.95rem}
+.response-flow .step:nth-child(1){background:rgba(108,60,224,.2);border:1px solid rgba(108,60,224,.3);color:var(--purple-light)}
+.response-flow .step:nth-child(3){background:rgba(6,182,212,.2);border:1px solid rgba(6,182,212,.3);color:var(--cyan)}
+.response-flow .step:nth-child(5){background:rgba(245,158,11,.2);border:1px solid rgba(245,158,11,.3);color:var(--amber)}
+.response-flow .step:nth-child(7){background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.3);color:var(--green)}
+.response-flow .arrow{color:var(--text-muted);font-size:1.2rem}
+
+/* ======================== SECTION: EXPERIENCE ======================== */
+.experience{position:relative}
+.experience-timeline{display:flex;flex-direction:column;gap:0;margin-top:48px;max-width:700px;margin-left:auto;margin-right:auto}
+.timeline-item{display:flex;align-items:flex-start;gap:24px;position:relative;padding:24px 0}
+.timeline-left{display:flex;flex-direction:column;align-items:center;min-width:48px}
+.timeline-dot{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;position:relative;z-index:2;transition:all .5s}
+.timeline-line{width:2px;flex:1;min-height:40px;background:linear-gradient(180deg,var(--glass-border),transparent)}
+.timeline-item:last-child .timeline-line{display:none}
+.timeline-content h3{font-size:1.15rem;margin-bottom:6px}
+.timeline-content p{color:var(--text-muted);font-size:.9rem}
+.timeline-item:nth-child(1) .timeline-dot{background:rgba(108,60,224,.2);border:2px solid var(--purple)}
+.timeline-item:nth-child(2) .timeline-dot{background:rgba(6,182,212,.2);border:2px solid var(--cyan)}
+.timeline-item:nth-child(3) .timeline-dot{background:rgba(34,197,94,.2);border:2px solid var(--green)}
+.timeline-item:nth-child(4) .timeline-dot{background:rgba(245,158,11,.2);border:2px solid var(--amber)}
+.timeline-item:nth-child(5) .timeline-dot{background:rgba(236,72,153,.2);border:2px solid var(--pink)}
+.timeline-item:nth-child(6) .timeline-dot{background:rgba(59,130,246,.2);border:2px solid var(--blue)}
+
+/* ======================== SECTION: SCENARIO LAB ======================== */
+.scenario-lab{background:linear-gradient(180deg,var(--navy-light) 0%,var(--navy) 100%)}
+.scenario-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;margin-top:48px}
+.scenario-card{padding:28px;cursor:pointer;transition:all .4s;position:relative;overflow:hidden}
+.scenario-card:hover{transform:translateY(-6px);border-color:rgba(255,255,255,.2)}
+.scenario-card.locked{opacity:.6;cursor:not-allowed}
+.scenario-card .card-icon{font-size:2.4rem;margin-bottom:16px}
+.scenario-card h3{font-size:1.1rem;margin-bottom:8px}
+.scenario-card p{color:var(--text-muted);font-size:.88rem;margin-bottom:20px;line-height:1.6}
+.scenario-card .status-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:50px;font-size:.75rem;font-weight:600}
+.scenario-card .status-badge.active{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.scenario-card .status-badge.coming{background:rgba(148,163,184,.1);color:var(--text-muted);border:1px solid rgba(148,163,184,.2)}
+.scenario-card .card-glow{position:absolute;top:-50%;right:-50%;width:200%;height:200%;opacity:0;transition:opacity .4s;pointer-events:none}
+.scenario-card:hover .card-glow{opacity:1}
+
+/* Road crossing scene */
+.road-scene{position:relative;width:100%;height:220px;background:linear-gradient(180deg,#1a2a3a 0%,#152535 60%,#2a2a2a 60%,#222 100%);overflow:hidden}
+.road-sky{position:absolute;top:0;left:0;right:0;height:60%;background:linear-gradient(180deg,#1a2a4a,#253555)}
+.road-surface{position:absolute;bottom:0;left:0;right:0;height:40%;background:#333}
+.road-surface::before{content:'';position:absolute;top:45%;left:0;right:0;height:4px;background:repeating-linear-gradient(90deg,#f1c40f 0,#f1c40f 30px,transparent 30px,transparent 60px)}
+.road-sidewalk{position:absolute;bottom:38%;left:0;right:0;height:10%;background:#555;border-top:2px solid #666}
+.traffic-light{position:absolute;top:10%;right:20%;width:30px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;background:#222;border-radius:8px;border:2px solid #444}
+.tl-light{width:18px;height:18px;border-radius:50%;background:#333;border:1px solid #555}
+.tl-light.red{background:#e74c3c;box-shadow:0 0 10px #e74c3c}
+.tl-light.yellow{background:#f39c12;box-shadow:0 0 10px #f39c12}
+.tl-light.green{background:#2ecc71;box-shadow:0 0 10px #2ecc71}
+.road-child{position:absolute;bottom:42%;left:15%;display:flex;flex-direction:column;align-items:center}
+.road-child .c-head{width:22px;height:22px;background:linear-gradient(135deg,#fbbf24,#f59e0b);border-radius:50%}
+.road-child .c-body{width:18px;height:24px;background:linear-gradient(135deg,var(--blue),#1d4ed8);border-radius:4px 4px 0 0;margin-top:2px}
+.road-sign{position:absolute;top:15%;left:50%;transform:translateX(-50%);padding:4px 10px;background:#2c3e50;border:2px solid #f1c40f;border-radius:4px;color:#f1c40f;font-size:.6rem;font-weight:700}
+
+/* Bus stop scene */
+.bus-scene{position:relative;width:100%;height:220px;background:linear-gradient(180deg,#1a2540 0%,#1e2d4a 60%,#3a3a3a 60%,#333 100%);overflow:hidden}
+.bus-sky{position:absolute;top:0;left:0;right:0;height:60%;background:linear-gradient(180deg,#1a2540,#253555)}
+.bus-road{position:absolute;bottom:0;left:0;right:0;height:40%;background:#333}
+.bus-sidewalk{position:absolute;bottom:38%;left:0;right:0;height:10%;background:#555;border-top:2px solid #666}
+.bus-stop-shelter{position:absolute;bottom:38%;left:10%;width:80px;height:70px;border:3px solid #4a90d9;border-bottom:none;border-radius:8px 8px 0 0;background:rgba(74,144,217,.1)}
+.bus-stop-shelter::after{content:'';position:absolute;top:-6px;left:-6px;right:-6px;height:8px;background:#4a90d9;border-radius:8px 8px 0 0}
+.bus-stop-sign{position:absolute;top:-30px;left:50%;transform:translateX(-50%);background:#2c3e50;padding:2px 8px;border-radius:4px;font-size:.55rem;color:#4a90d9;border:1px solid #4a90d9;white-space:nowrap}
+.bus-stop-bench{position:absolute;bottom:38%;left:15%;width:50px;height:12px;background:#8b6f47;border-radius:3px;border-bottom:3px solid #6b5233}
+.bus-child{position:absolute;bottom:42%;left:18%;display:flex;flex-direction:column;align-items:center}
+.bus-child .c-head{width:22px;height:22px;background:linear-gradient(135deg,#fbbf24,#f59e0b);border-radius:50%}
+.bus-child .c-body{width:18px;height:24px;background:linear-gradient(135deg,var(--cyan),#0891b2);border-radius:4px 4px 0 0;margin-top:2px}
+.bus-vehicle{position:absolute;bottom:28%;right:10%;width:100px;height:50px;background:linear-gradient(135deg,#2980b9,#1a5276);border-radius:8px 8px 4px 4px;border:2px solid #3498db;display:flex;align-items:center;justify-content:center}
+.bus-vehicle .bus-num{color:#fff;font-size:.8rem;font-weight:800}
+.bus-vehicle::before{content:'';position:absolute;top:6px;left:8px;width:18px;height:14px;background:rgba(255,255,255,.2);border-radius:3px}
+.bus-vehicle::after{content:'';position:absolute;top:6px;left:32px;width:18px;height:14px;background:rgba(255,255,255,.2);border-radius:3px}
+.bus-wheel{position:absolute;bottom:-8px;width:14px;height:14px;background:#222;border-radius:50%;border:2px solid #555}
+.bus-wheel.whl1{left:12px}
+.bus-wheel.whl2{right:12px}
+
+/* ======================== SIMULATION OVERLAY ======================== */
+.sim-overlay{position:fixed;inset:0;z-index:2000;background:rgba(10,14,39,.96);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .4s;backdrop-filter:blur(8px)}
+.sim-overlay.active{opacity:1;pointer-events:auto}
+.sim-container{width:90%;max-width:800px;max-height:90vh;overflow-y:auto;border-radius:var(--radius);background:var(--navy-light);border:1px solid var(--glass-border);position:relative}
+.sim-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid var(--glass-border);color:var(--text);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;z-index:10}
+.sim-close:hover{background:rgba(255,255,255,.15)}
+.sim-scene{min-height:200px;position:relative;overflow:hidden;border-radius:var(--radius) var(--radius) 0 0}
+.sim-scene .classroom-bg{width:100%;height:100%;background:linear-gradient(180deg,#1a1a3e 0%,#141432 50%,#2a2a4a 100%);position:relative}
+.sim-body{padding:32px}
+
+/* Classroom scene */
+.classroom-scene{position:relative;width:100%;height:220px;background:linear-gradient(180deg,#1e1e45 0%,#161640 100%);overflow:hidden}
+.cls-floor{position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(180deg,#2a2a55,#1e1e40)}
+.cls-board{position:absolute;top:10%;left:10%;width:35%;height:40%;background:#1a3a1a;border:3px solid #4a3520;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#7dd87d;font-size:.9rem;font-weight:600;padding:8px;text-align:center}
+.cls-desk{position:absolute;bottom:15%;left:20%;width:80px;height:50px;background:linear-gradient(135deg,#8b6f47,#6b5233);border-radius:4px}
+.cls-teacher{position:absolute;top:12%;right:15%;display:flex;flex-direction:column;align-items:center}
+.cls-teacher .t-head{width:30px;height:30px;background:linear-gradient(135deg,#fde68a,#f59e0b);border-radius:50%}
+.cls-teacher .t-body{width:24px;height:35px;background:linear-gradient(135deg,var(--purple),#5b21b6);border-radius:4px 4px 0 0;margin-top:3px}
+.cls-child{position:absolute;bottom:16%;left:26%;display:flex;flex-direction:column;align-items:center}
+.cls-child .c-head{width:24px;height:24px;background:linear-gradient(135deg,#fbbf24,#f59e0b);border-radius:50%}
+.cls-child .c-body{width:20px;height:28px;background:linear-gradient(135deg,var(--blue),#1d4ed8);border-radius:4px 4px 0 0;margin-top:2px}
+
+/* Shopping scene */
+.shop-scene{position:relative;width:100%;height:220px;background:linear-gradient(180deg,#1a2535 0%,#152030 100%);overflow:hidden}
+.shop-floor{position:absolute;bottom:0;left:0;right:0;height:50px;background:linear-gradient(180deg,#2a3555,#1e2a40)}
+.shop-shelf{position:absolute;bottom:30%;background:linear-gradient(135deg,#6b5233,#4a3a22);border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px}
+.shop-shelf .product{width:16px;height:16px;border-radius:3px}
+.shop-shelf-1{left:5%;width:60px;height:90px}
+.shop-shelf-2{left:22%;width:60px;height:90px}
+.shop-shelf-3{left:39%;width:60px;height:90px}
+.shop-cashier{position:absolute;right:10%;bottom:28%;display:flex;flex-direction:column;align-items:center}
+.shop-cashier .ca-head{width:28px;height:28px;background:linear-gradient(135deg,#fde68a,#f59e0b);border-radius:50%}
+.shop-cashier .ca-body{width:22px;height:32px;background:linear-gradient(135deg,var(--green),#15803d);border-radius:4px 4px 0 0;margin-top:3px}
+.shop-register{position:absolute;right:18%;bottom:28%;width:40px;height:50px;background:#3a3a5a;border-radius:4px;border:2px solid #5a5a7a}
+.shop-child{position:absolute;bottom:28%;left:40%;display:flex;flex-direction:column;align-items:center}
+.shop-child .c-head{width:24px;height:24px;background:linear-gradient(135deg,#fbbf24,#f59e0b);border-radius:50%}
+.shop-child .c-body{width:20px;height:28px;background:linear-gradient(135deg,var(--blue),#1d4ed8);border-radius:4px 4px 0 0;margin-top:2px}
+.shop-basket{position:absolute;bottom:28%;left:48%;width:24px;height:18px;border:2px solid #888;border-radius:0 0 8px 8px;border-top:none}
+
+/* Speech bubble */
+.speech-bubble{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:16px 20px;margin:20px 0;position:relative;animation:scaleIn .4s ease}
+.speech-bubble::before{content:'';position:absolute;top:-8px;left:24px;width:16px;height:16px;background:rgba(255,255,255,.1);border-left:1px solid rgba(255,255,255,.15);border-top:1px solid rgba(255,255,255,.15);transform:rotate(45deg)}
+.speech-bubble .speaker{font-size:.8rem;color:var(--purple-light);font-weight:600;margin-bottom:6px}
+.speech-bubble .message{font-size:1.05rem;color:var(--white)}
+
+/* Response choices */
+.response-choices{display:flex;flex-direction:column;gap:12px;margin:20px 0}
+.response-btn{padding:16px 24px;border-radius:14px;background:rgba(108,60,224,.1);border:1px solid rgba(108,60,224,.25);color:var(--white);font-size:1rem;font-weight:500;cursor:pointer;transition:all .3s;text-align:left;display:flex;align-items:center;gap:12px}
+.response-btn:hover{background:rgba(108,60,224,.2);border-color:rgba(108,60,224,.4);transform:translateX(4px)}
+.response-btn .btn-letter{width:28px;height:28px;border-radius:8px;background:rgba(108,60,224,.25);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0}
+.response-btn.correct{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.4)}
+.response-btn.needs-practice{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3)}
+
+/* Feedback */
+.feedback-box{padding:20px;border-radius:14px;margin:16px 0;animation:scaleIn .4s ease}
+.feedback-box.positive{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25)}
+.feedback-box.positive .fb-icon{color:var(--green)}
+.feedback-box.gentle{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2)}
+.feedback-box.gentle .fb-icon{color:var(--amber)}
+.feedback-box .fb-icon{font-size:1.4rem;margin-bottom:8px}
+.feedback-box .fb-text{font-size:1rem;color:var(--white);margin-bottom:4px}
+.feedback-box .fb-hint{font-size:.9rem;color:var(--text-muted);padding:10px 16px;background:rgba(255,255,255,.05);border-radius:8px;margin-top:10px}
+
+/* Skill results */
+.skill-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:24px 0}
+.skill-result-item{padding:20px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--glass-border)}
+.skill-result-item .skill-name{font-size:.85rem;color:var(--text-muted);margin-bottom:8px}
+.skill-result-item .stars{font-size:1.2rem;color:var(--amber);letter-spacing:2px}
+.skill-result-item .stars .empty{color:rgba(148,163,184,.3)}
+
+/* ======================== SECTION: ADAPTIVE DIFFICULTY ======================== */
+.adaptive{position:relative}
+.difficulty-levels{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-top:48px}
+.diff-card{padding:28px;text-align:center;position:relative;overflow:hidden}
+.diff-card .level-num{font-size:3rem;font-weight:800;opacity:.1;position:absolute;top:12px;right:16px}
+.diff-card h3{font-size:1.1rem;margin-bottom:8px}
+.diff-card .level-tag{display:inline-block;padding:4px 12px;border-radius:50px;font-size:.75rem;font-weight:600;margin-bottom:16px}
+.diff-card:nth-child(1) .level-tag{background:rgba(108,60,224,.15);color:var(--purple-light);border:1px solid rgba(108,60,224,.3)}
+.diff-card:nth-child(2) .level-tag{background:rgba(245,158,11,.15);color:var(--amber);border:1px solid rgba(245,158,11,.3)}
+.diff-card:nth-child(3) .level-tag{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.diff-card p{color:var(--text-muted);font-size:.9rem;margin-bottom:20px}
+.guidance-bar{height:12px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden}
+.guidance-fill{height:100%;border-radius:6px;transition:width 1.5s ease}
+.diff-card:nth-child(1) .guidance-fill{width:85%;background:linear-gradient(90deg,var(--purple),var(--purple-light))}
+.diff-card:nth-child(2) .guidance-fill{width:50%;background:linear-gradient(90deg,var(--amber),#fbbf24)}
+.diff-card:nth-child(3) .guidance-fill{width:20%;background:linear-gradient(90deg,var(--green),#4ade80)}
+.guidance-label{display:flex;justify-content:space-between;margin-top:8px;font-size:.75rem;color:var(--text-muted)}
+
+/* Animated progression */
+.difficulty-progression{margin-top:48px;padding:32px;text-align:center}
+.difficulty-progression h3{margin-bottom:32px;font-size:1.3rem}
+.progression-bars{max-width:500px;margin:0 auto}
+.prog-bar-group{margin-bottom:20px}
+.prog-bar-group .prog-label{display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:6px}
+.prog-bar{height:20px;border-radius:10px;background:rgba(255,255,255,.06);overflow:hidden;position:relative}
+.prog-bar .prog-fill{height:100%;border-radius:10px;transition:width 2s ease;position:relative}
+.prog-bar .prog-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.15) 50%,transparent 100%);animation:progressPulse 2s ease infinite}
+.prog-arrow{color:var(--green);font-size:1.2rem;margin:8px 0}
+
+/* ======================== SECTION: SKILL FINGERPRINT ======================== */
+.skill-fingerprint{background:linear-gradient(180deg,var(--navy) 0%,var(--navy-light) 100%)}
+.fingerprint-layout{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:48px;align-items:start}
+.radar-container{position:relative;width:100%;max-width:420px;margin:0 auto}
+.radar-container canvas{width:100%;height:auto}
+.skill-details .skill-row{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--glass-border);margin-bottom:10px;transition:all .3s}
+.skill-details .skill-row:hover{background:rgba(255,255,255,.06)}
+.skill-details .skill-row .s-name{font-size:.95rem}
+.skill-details .skill-row .s-bar{flex:1;margin:0 20px;height:8px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden;max-width:120px}
+.skill-details .skill-row .s-bar-fill{height:100%;border-radius:4px;transition:width 1.5s ease}
+.skill-details .skill-row .s-pct{font-size:.9rem;font-weight:600;min-width:40px;text-align:right}
+.insight-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:24px}
+.insight-card{padding:16px;border-radius:12px;border:1px solid var(--glass-border);background:rgba(255,255,255,.03)}
+.insight-card .ic-label{font-size:.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.insight-card .ic-value{font-size:1rem;font-weight:600;color:var(--white)}
+.insight-card .ic-sub{font-size:.8rem;color:var(--text-muted);margin-top:4px}
+
+/* ======================== SECTION: EDUCATOR DASHBOARD ======================== */
+.educator-dashboard{position:relative}
+.dash-layout{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-top:40px}
+.dash-stat{padding:24px;text-align:center}
+.dash-stat .ds-icon{font-size:2rem;margin-bottom:12px}
+.dash-stat .ds-num{font-size:2rem;font-weight:800;color:var(--white)}
+.dash-stat .ds-label{font-size:.85rem;color:var(--text-muted);margin-top:4px}
+.learner-card{padding:28px;margin-top:32px}
+.learner-card h3{font-size:1.15rem;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.learner-card h3 .avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--blue));display:flex;align-items:center;justify-content:center;font-size:.9rem}
+.learner-skills{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px}
+.l-skill{padding:12px;border-radius:10px;background:rgba(255,255,255,.04)}
+.l-skill .ls-name{font-size:.8rem;color:var(--text-muted);margin-bottom:6px}
+.l-skill .ls-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;margin-bottom:4px}
+.l-skill .ls-fill{height:100%;border-radius:3px}
+.l-skill .ls-pct{font-size:.85rem;font-weight:600}
+.attempt-timeline{margin-top:20px}
+.attempt-timeline h4{font-size:.95rem;margin-bottom:16px;color:var(--text-muted)}
+.attempt-row{display:flex;align-items:center;gap:16px;padding:12px 16px;border-radius:10px;background:rgba(255,255,255,.03);margin-bottom:8px}
+.attempt-row .ar-num{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0}
+.attempt-row:nth-child(2) .ar-num{background:rgba(108,60,224,.2);color:var(--purple-light);border:1px solid rgba(108,60,224,.3)}
+.attempt-row:nth-child(3) .ar-num{background:rgba(245,158,11,.2);color:var(--amber);border:1px solid rgba(245,158,11,.3)}
+.attempt-row:nth-child(4) .ar-num{background:rgba(34,197,94,.2);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.attempt-row .ar-info{flex:1}
+.attempt-row .ar-info .ar-scene{font-size:.9rem;color:var(--white)}
+.attempt-row .ar-info .ar-desc{font-size:.8rem;color:var(--text-muted)}
+.recommended-panel{padding:24px;border-radius:var(--radius);background:linear-gradient(135deg,rgba(108,60,224,.1),rgba(6,182,212,.08));border:1px solid rgba(108,60,224,.2);margin-top:24px}
+.recommended-panel h4{font-size:1rem;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.recommended-panel .rec-items{display:flex;flex-direction:column;gap:10px}
+.rec-item{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:10px;background:rgba(255,255,255,.05)}
+.rec-item .ri-icon{font-size:1.2rem}
+.rec-item .ri-text{font-size:.9rem;color:var(--white)}
+.rec-item .ri-tag{font-size:.7rem;padding:3px 8px;border-radius:50px;background:rgba(108,60,224,.2);color:var(--purple-light);margin-left:auto}
+
+/* ======================== SECTION: PARENT VIEW ======================== */
+.parent-view{background:linear-gradient(180deg,var(--navy-light) 0%,var(--navy) 100%)}
+.parent-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-top:40px}
+.parent-card{padding:28px}
+.parent-card .pc-icon{font-size:1.8rem;margin-bottom:14px}
+.parent-card h3{font-size:1.05rem;margin-bottom:10px}
+.parent-card p{color:var(--text-muted);font-size:.9rem;line-height:1.6}
+.parent-card .pc-highlight{display:flex;align-items:center;gap:8px;margin-top:14px;padding:10px 14px;border-radius:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.15)}
+.parent-card .pc-highlight span{font-size:.85rem;color:var(--green)}
+
+/* ======================== SECTION: FEEDBACK ENGINE ======================== */
+.feedback-demo{max-width:700px;margin:0 auto}
+.feedback-comparison{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:40px}
+.fb-box{padding:24px;border-radius:var(--radius)}
+.fb-box.fb-wrong{text-align:center}
+.fb-box.fb-wrong .fb-title{color:var(--red-soft);font-size:1.1rem;font-weight:700;margin-bottom:12px}
+.fb-box.fb-wrong .fb-example{padding:12px;border-radius:8px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2)}
+.fb-box.fb-wrong .fb-example .bad{color:var(--red-soft);font-size:.9rem;margin:4px 0}
+.fb-box.fb-right{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.05)}
+.fb-box.fb-right .fb-title{color:var(--green);font-size:1.1rem;font-weight:700;margin-bottom:12px}
+.fb-box.fb-right .fb-example{padding:16px;border-radius:12px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2)}
+.fb-box.fb-right .fb-example .good{color:var(--green);font-size:.95rem;margin:4px 0}
+.fb-box.fb-right .fb-example .hint-msg{color:var(--text-muted);font-size:.85rem;margin-top:8px;padding:10px;background:rgba(255,255,255,.05);border-radius:8px}
+
+/* ======================== SECTION: PROGRESS COMPARISON ======================== */
+.progress-comparison{position:relative}
+.comparison-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-top:40px}
+.comparison-card{padding:24px;text-align:center}
+.comparison-card .cc-num{font-size:2.5rem;font-weight:800;margin-bottom:4px}
+.comparison-card .cc-label{font-size:.85rem;color:var(--text-muted);margin-bottom:16px}
+.comparison-card .cc-bar{height:10px;border-radius:5px;background:rgba(255,255,255,.08);overflow:hidden;margin-bottom:8px}
+.comparison-card .cc-bar-fill{height:100%;border-radius:5px;transition:width 2s ease}
+.comparison-card:nth-child(1) .cc-num{color:var(--red-soft)}
+.comparison-card:nth-child(1) .cc-bar-fill{width:30%;background:linear-gradient(90deg,#ef4444,#f87171)}
+.comparison-card:nth-child(2) .cc-num{color:var(--amber)}
+.comparison-card:nth-child(2) .cc-bar-fill{width:60%;background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+.comparison-card:nth-child(3) .cc-num{color:var(--green)}
+.comparison-card:nth-child(3) .cc-bar-fill{width:90%;background:linear-gradient(90deg,#22c55e,#4ade80)}
+.comparison-card .cc-info{font-size:.8rem;color:var(--text-muted);margin-top:8px}
+.progress-cta{text-align:center;margin-top:40px}
+.progress-cta .overall-bar{max-width:500px;margin:20px auto 0;height:24px;border-radius:12px;background:rgba(255,255,255,.06);overflow:hidden;position:relative}
+.progress-cta .overall-fill{height:100%;border-radius:12px;background:linear-gradient(90deg,var(--purple),var(--cyan));transition:width 3s ease;position:relative}
+.progress-cta .overall-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);animation:progressPulse 2s ease infinite}
+.progress-cta .overall-label{font-size:.85rem;color:var(--text-muted);margin-top:10px}
+
+/* ======================== SECTION: VR CONCEPT ======================== */
+.vr-concept{background:linear-gradient(180deg,var(--navy) 0%,var(--navy-light) 100%)}
+.vr-flow{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:48px;flex-wrap:wrap}
+.vr-step{padding:16px 24px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--glass-border);text-align:center;min-width:140px;transition:all .3s}
+.vr-step:hover{background:rgba(255,255,255,.08);transform:translateY(-4px)}
+.vr-step .vs-icon{font-size:1.8rem;margin-bottom:8px}
+.vr-step .vs-text{font-size:.85rem;color:var(--text-muted)}
+.vr-arrow{color:var(--text-muted);font-size:1.2rem;flex-shrink:0}
+.vr-note{max-width:640px;margin:32px auto 0;padding:20px;border-radius:12px;background:rgba(108,60,224,.08);border:1px solid rgba(108,60,224,.2);text-align:center}
+.vr-note p{color:var(--text-muted);font-size:.9rem;line-height:1.7}
+.vr-note strong{color:var(--purple-light)}
+
+/* ======================== SECTION: ARCHITECTURE ======================== */
+.architecture{position:relative}
+.arch-flow{display:flex;flex-direction:column;align-items:center;gap:0;margin-top:48px;max-width:600px;margin-left:auto;margin-right:auto}
+.arch-node{padding:16px 32px;border-radius:12px;text-align:center;font-weight:600;font-size:.95rem;position:relative;min-width:280px;transition:all .3s}
+.arch-node:hover{transform:scale(1.04)}
+.arch-arrow{width:2px;height:32px;background:linear-gradient(180deg,var(--glass-border),rgba(108,60,224,.4),var(--glass-border));position:relative}
+.arch-arrow::after{content:'▼';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);color:var(--purple-light);font-size:.7rem}
+.arch-node:nth-child(1){background:rgba(108,60,224,.15);border:1px solid rgba(108,60,224,.3);color:var(--purple-light)}
+.arch-node:nth-child(3){background:rgba(6,182,212,.12);border:1px solid rgba(6,182,212,.25);color:var(--cyan)}
+.arch-node:nth-child(5){background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:var(--amber)}
+.arch-node:nth-child(7){background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:var(--green)}
+.arch-node:nth-child(9){background:rgba(236,72,153,.1);border:1px solid rgba(236,72,153,.2);color:var(--pink)}
+.arch-node:nth-child(11){background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);color:var(--blue)}
+.arch-node:nth-child(13){background:rgba(108,60,224,.12);border:1px solid rgba(108,60,224,.25);color:var(--purple-light)}
+
+/* ======================== SECTION: PRIVACY ======================== */
+.privacy{background:linear-gradient(180deg,var(--navy-light) 0%,var(--navy) 100%)}
+.privacy-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:40px}
+.privacy-item{padding:24px;text-align:center}
+.privacy-item .pi-icon{font-size:1.6rem;margin-bottom:12px}
+.privacy-item h4{font-size:.95rem;margin-bottom:6px}
+.privacy-item p{color:var(--text-muted);font-size:.85rem}
+.privacy-disclaimer{max-width:700px;margin:40px auto 0;padding:24px;border-radius:12px;background:rgba(108,60,224,.08);border:1px solid rgba(108,60,224,.2);text-align:center}
+.privacy-disclaimer p{color:var(--text-muted);font-size:.9rem;font-style:italic}
+
+/* ======================== SECTION: FINAL CTA ======================== */
+.final-cta{text-align:center;padding:120px 0;position:relative;overflow:hidden}
+.final-cta::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(108,60,224,.15),transparent 70%)}
+.final-cta h2{font-size:clamp(1.8rem,4vw,2.5rem);margin-bottom:16px;position:relative}
+.final-cta .subtitle{color:var(--text-muted);font-size:1.1rem;margin-bottom:40px;position:relative}
+.final-cta .cta-buttons{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;position:relative}
+
+/* ======================== FOOTER ======================== */
+footer{padding:40px 0;border-top:1px solid var(--glass-border);text-align:center}
+footer p{color:var(--text-muted);font-size:.85rem}
+footer .footer-tagline{color:var(--purple-light);font-size:.9rem;margin-bottom:8px}
+
+/* ======================== NAV TABS (Educator/Parent) ======================== */
+.view-tabs{display:flex;gap:8px;margin-top:24px;justify-content:center}
+.view-tab{padding:10px 24px;border-radius:50px;font-size:.9rem;font-weight:500;border:1px solid var(--glass-border);background:transparent;color:var(--text-muted);cursor:pointer;transition:all .3s}
+.view-tab.active{background:rgba(108,60,224,.2);border-color:rgba(108,60,224,.4);color:var(--purple-light)}
+.view-panel{display:none}
+.view-panel.active{display:block;animation:fadeIn .4s ease}
+
+/* ======================== RESPONSIVE ======================== */
+@media(max-width:900px){
+  .hero .container{grid-template-columns:1fr;text-align:center}
+  .hero p{margin-left:auto;margin-right:auto}
+  .hero-buttons{justify-content:center}
+  .hero-stats{justify-content:center}
+  .hero-visual{max-width:500px;margin:0 auto}
+  .fingerprint-layout{grid-template-columns:1fr}
+  .feedback-comparison{grid-template-columns:1fr}
+  .nav-links{display:none}
+  .mobile-toggle{display:block}
+  nav.scrolled .nav-links.show{display:flex;flex-direction:column;position:absolute;top:100%;left:0;right:0;background:rgba(10,14,39,.96);backdrop-filter:blur(16px);padding:20px;gap:16px;border-bottom:1px solid var(--glass-border)}
+}
+@media(max-width:600px){
+  .section{padding:60px 0}
+  .scenario-grid{grid-template-columns:1fr}
+  .difficulty-levels{grid-template-columns:1fr}
+  .vr-flow{flex-direction:column}
+  .vr-arrow{transform:rotate(90deg)}
+}
+</style>
+</head>
+<body>
+
+<!-- ======================== NAVIGATION ======================== -->
+<nav id="navbar">
+  <div class="container">
+    <a href="#" class="nav-logo">
+      <span class="logo-icon">ISE</span>
+      <span>Interactive Skills Enhancer</span>
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#why-ise">Why ISE</a></li>
+      <li><a href="#experience">How It Works</a></li>
+      <li><a href="#scenarios">Scenarios</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#dashboard">Dashboard</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="#scenarios" class="btn btn-primary btn-sm">Enter ISE</a>
+    </div>
+    <button class="mobile-toggle" onclick="document.getElementById('navLinks').classList.toggle('show')">☰</button>
+  </div>
+</nav>
+
+<!-- ======================== 1. HERO ======================== -->
+<section class="hero" id="hero">
+  <div class="hero-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-tag"><span class="dot"></span> VR-Based Assistive Learning</div>
+      <h1>Real-World Skills.<br><span class="gradient-text">A Safe Space to Practice.</span></h1>
+      <p>ISE creates interactive virtual situations where children can practice everyday skills repeatedly, receive supportive feedback, and gradually become more independent.</p>
+      <div class="hero-buttons">
+        <a href="#scenarios" class="btn btn-primary">Enter ISE →</a>
+        <a href="#experience" class="btn btn-secondary">Explore How It Works</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="num">4</div><div class="lbl">Virtual Scenarios</div></div>
+        <div class="hero-stat"><div class="num">3</div><div class="lbl">Adaptive Levels</div></div>
+        <div class="hero-stat"><div class="num">∞</div><div class="lbl">Safe Practice</div></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="world-container">
+        <div class="vr-scene">
+          <div class="scene-ground"></div>
+          <div class="scene-grid"></div>
+          <div class="child-glow"></div>
+          <div class="child-avatar"><div class="head"></div><div class="body"></div></div>
+          <div class="scene-building building-classroom"><span class="label">🏫 Classroom</span></div>
+          <div class="scene-building building-supermarket"><span class="label">🛒 Supermarket</span></div>
+          <div class="scene-building building-crossing"><span class="label">🚦 Road Crossing</span></div>
+          <div class="scene-building building-home"><span class="label">🏠 Home</span></div>
+          <div class="scene-building building-busstop"><span class="label">🚌 Bus Stop</span></div>
+          <!-- Particles -->
+          <div class="particle" style="width:4px;height:4px;background:var(--purple);top:20%;left:15%;--dur:5s;--delay:0s"></div>
+          <div class="particle" style="width:3px;height:3px;background:var(--cyan);top:30%;left:75%;--dur:6s;--delay:1s"></div>
+          <div class="particle" style="width:5px;height:5px;background:var(--pink);top:60%;left:40%;--dur:7s;--delay:.5s"></div>
+          <div class="particle" style="width:3px;height:3px;background:var(--green);top:15%;left:60%;--dur:4s;--delay:2s"></div>
+          <div class="particle" style="width:4px;height:4px;background:var(--amber);top:45%;left:85%;--dur:5.5s;--delay:1.5s"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== 2. WHY ISE ======================== -->
+<section class="section why-ise" id="why-ise">
+  <div class="container">
+    <div class="animate-on-scroll">
+      <div class="section-label">⚡ The Problem</div>
+      <h2 class="section-title">Learning Life Skills Shouldn't Depend on a Perfect Environment.</h2>
+      <p class="section-subtitle">Children with ASD and ID face unique challenges when learning everyday skills in unpredictable real-world settings.</p>
+    </div>
+    <div class="problem-cards">
+      <div class="problem-card glass animate-on-scroll">
+        <div class="icon-wrap">🌀</div>
+        <h3>Unpredictable Real-World Situations</h3>
+        <p>Everyday environments can be overwhelming or difficult to control, making consistent learning difficult.</p>
+      </div>
+      <div class="problem-card glass animate-on-scroll">
+        <div class="icon-wrap">🔒</div>
+        <h3>Limited Safe Practice</h3>
+        <p>Children may not always have the opportunity to repeatedly practice the same situation in real life.</p>
+      </div>
+      <div class="problem-card glass animate-on-scroll">
+        <div class="icon-wrap">📐</div>
+        <h3>One-Size-Fits-All Learning</h3>
+        <p>Different learners require different levels of guidance, but traditional approaches don't adapt.</p>
+      </div>
+    </div>
+    <div class="ise-response glass animate-on-scroll">
+      <h3>ISE Response</h3>
+      <div class="response-flow">
+        <span class="step">Controlled</span>
+        <span class="arrow">→</span>
+        <span class="step">Repeatable</span>
+        <span class="arrow">→</span>
+        <span class="step">Personalized</span>
+        <span class="arrow">→</span>
+        <span class="step">Supportive</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== 3. THE ISE EXPERIENCE ======================== -->
+<section class="section experience" id="experience">
+  <div class="container">
+    <div class="animate-on-scroll" style="text-align:center">
+      <div class="section-label">🔄 The Process</div>
+      <h2 class="section-title">The ISE Experience</h2>
+      <p class="section-subtitle" style="margin:0 auto">A structured learning journey from first attempt to confident independence.</p>
+    </div>
+    <div class="experience-timeline">
+      <div class="timeline-item animate-on-scroll">
+        <div class="timeline-left"><div class="timeline-dot">📋</div><div class="timeline-line"></div></div>
+        <div class="timeline-content"><h3>Choose a Scenario</h3><p>Select from classroom, shopping, road crossing, or bus stop scenarios.</p></div>
+      </div>
+      <div class="timeline-item animate-on-scroll">
+        <div class="timeline-left"><div class="timeline-dot">🌐</div><div class="timeline-line"></div></div>
+        <div class="timeline-content"><h3>Enter Virtual Environment</h3><p>Step into a controlled, safe virtual setting designed for learning.</p></div>
+      </div>
+      <div class="timeline-item animate-on-scroll">
+        <div class="timeline-left"><div class="timeline-dot">🤔</div><div class="timeline-line"></div></div>
+        <div class="timeline-content"><h3>Make a Decision</h3><p>Choose how to respond to situations and interactions.</p></div>
+      </div>
+      <div class="timeline-item animate-on-scroll">
+        <div class="timeline-left"><div class="timeline-dot">💬</div><div class="timeline-line"></div></div>
+        <div class="timeline-content"><h3>Receive Supportive Feedback</h3><p>Get gentle, encouraging guidance — never punishment for mistakes.</p></div>
+      </div>
+      <div class="timeline-item animate-on-scroll">
+        <div class="timeline-left"><div class="timeline-dot">🔁</div><div class="timeline-line"></div></div>
+        <div class="timeline-content"><h3>Repeat & Practice</h3><p>Try again as many times as needed, building confidence each time.</p></div>
+      </div>
+      <div class="timeline-item animate-on-scroll">
+        <div class="timeline-left"><div class="timeline-dot">🌟</div></div>
+        <div class="timeline-content"><h3>Progress Toward Independence</h3><p>Gradually reduce guidance as skills develop and confidence grows.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== 4. SCENARIO LAB ======================== -->
+<section class="section scenario-lab" id="scenarios">
+  <div class="container">
+    <div class="animate-on-scroll" style="text-align:center">
+      <div class="section-label">🧪 Interactive Demo</div>
+      <h2 class="section-title">Scenario Lab</h2>
+      <p class="section-subtitle" style="margin:0 auto">Select a scenario to experience how ISE works. The Classroom and Shopping scenarios are fully interactive.</p>
+    </div>
+    <div class="scenario-grid">
+      <div class="scenario-card glass animate-on-scroll" onclick="openSimulation('classroom')">
+        <div class="card-glow" style="background:radial-gradient(circle,rgba(108,60,224,.08),transparent 70%)"></div>
+        <div class="card-icon">🏫</div>
+        <h3>Classroom</h3>
+        <p>Practice greeting a teacher, following instructions and asking for help.</p>
+        <span class="status-badge active">▶ Try Interactive Demo</span>
+      </div>
+      <div class="scenario-card glass animate-on-scroll" onclick="openSimulation('shopping')">
+        <div class="card-glow" style="background:radial-gradient(circle,rgba(34,197,94,.08),transparent 70%)"></div>
+        <div class="card-icon">🛒</div>
+        <h3>Shopping</h3>
+        <p>Practice selecting an item, asking the price and interacting with a cashier.</p>
+        <span class="status-badge active">▶ Try Interactive Demo</span>
+      </div>
+      <div class="scenario-card glass animate-on-scroll" onclick="openSimulation('roadcrossing')">
+        <div class="card-glow" style="background:radial-gradient(circle,rgba(245,158,11,.08),transparent 70%)"></div>
+        <div class="card-icon">🚦</div>
+        <h3>Road Crossing</h3>
+        <p>Practice identifying signals, waiting safely and crossing at the correct time.</p>
+        <span class="status-badge active">▶ Try Interactive Demo</span>
+      </div>
+      <div class="scenario-card glass animate-on-scroll" onclick="openSimulation('busstop')">
+        <div class="card-glow" style="background:radial-gradient(circle,rgba(6,182,212,.08),transparent 70%)"></div>
+        <div class="card-icon">🚌</div>
+        <h3>Bus Stop</h3>
+        <p>Practice waiting, identifying the correct bus and asking for assistance.</p>
+        <span class="status-badge active">▶ Try Interactive Demo</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== CLASSROOM SIMULATION OVERLAY ======================== -->
+<div class="sim-overlay" id="classroomSim">
+  <div class="sim-container">
+    <button class="sim-close" onclick="closeSimulation('classroom')">✕</button>
+    <div class="sim-scene">
+      <div class="classroom-scene">
+        <div class="cls-floor"></div>
+        <div class="cls-board">Welcome to Class!</div>
+        <div class="cls-desk"></div>
+        <div class="cls-teacher"><div class="t-head"></div><div class="t-body"></div></div>
+        <div class="cls-child"><div class="c-head"></div><div class="c-body"></div></div>
+      </div>
+    </div>
+    <div class="sim-body" id="classroomBody">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ======================== SHOPPING SIMULATION OVERLAY ======================== -->
+<div class="sim-overlay" id="shoppingSim">
+  <div class="sim-container">
+    <button class="sim-close" onclick="closeSimulation('shopping')">✕</button>
+    <div class="sim-scene">
+      <div class="shop-scene">
+        <div class="shop-floor"></div>
+        <div class="shop-shelf shop-shelf-1">
+          <div class="product" style="background:#e74c3c"></div>
+          <div class="product" style="background:#3498db"></div>
+          <div class="product" style="background:#f1c40f"></div>
+        </div>
+        <div class="shop-shelf shop-shelf-2">
+          <div class="product" style="background:#2ecc71"></div>
+          <div class="product" style="background:#9b59b6"></div>
+          <div class="product" style="background:#e67e22"></div>
+        </div>
+        <div class="shop-shelf shop-shelf-3">
+          <div class="product" style="background:#1abc9c"></div>
+          <div class="product" style="background:#e74c3c"></div>
+          <div class="product" style="background:#3498db"></div>
+        </div>
+        <div class="shop-cashier"><div class="ca-head"></div><div class="ca-body"></div></div>
+        <div class="shop-register"></div>
+        <div class="shop-child"><div class="c-head"></div><div class="c-body"></div></div>
+        <div class="shop-basket"></div>
+      </div>
+    </div>
+    <div class="sim-body" id="shoppingBody">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ======================== ROAD CROSSING SIMULATION OVERLAY ======================== -->
+<div class="sim-overlay" id="roadcrossingSim">
+  <div class="sim-container">
+    <button class="sim-close" onclick="closeSimulation('roadcrossing')">✕</button>
+    <div class="sim-scene">
+      <div class="road-scene">
+        <div class="road-sky"></div>
+        <div class="road-sign">CROSSWALK</div>
+        <div class="traffic-light">
+          <div class="tl-light red"></div>
+          <div class="tl-light yellow"></div>
+          <div class="tl-light green"></div>
+        </div>
+        <div class="road-sidewalk"></div>
+        <div class="road-surface"></div>
+        <div class="road-child"><div class="c-head"></div><div class="c-body"></div></div>
+      </div>
+    </div>
+    <div class="sim-body" id="roadcrossingBody">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ======================== BUS STOP SIMULATION OVERLAY ======================== -->
+<div class="sim-overlay" id="busstopSim">
+  <div class="sim-container">
+    <button class="sim-close" onclick="closeSimulation('busstop')">✕</button>
+    <div class="sim-scene">
+      <div class="bus-scene">
+        <div class="bus-sky"></div>
+        <div class="bus-stop-shelter">
+          <div class="bus-stop-sign">BUS STOP</div>
+        </div>
+        <div class="bus-stop-bench"></div>
+        <div class="bus-sidewalk"></div>
+        <div class="bus-road"></div>
+        <div class="bus-child"><div class="c-head"></div><div class="c-body"></div></div>
+        <div class="bus-vehicle">
+          <span class="bus-num">5</span>
+          <div class="bus-wheel whl1"></div>
+          <div class="bus-wheel whl2"></div>
+        </div>
+      </div>
+    </div>
+    <div class="sim-body" id="busstopBody">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ======================== 7. ADAPTIVE DIFFICULTY ======================== -->
+<section class="section adaptive" id="adaptive">
+  <div class="container">
+    <div class="animate-on-scroll" style="text-align:center">
+      <div class="section-label">📈 Key Innovation</div>
+      <h2 class="section-title">From Guided Practice to Independence</h2>
+      <p class="section-subtitle" style="margin:0 auto">ISE adapts to each learner's pace, gradually reducing support as confidence grows.</p>
+    </div>
+    <div class="difficulty-levels">
+      <div class="diff-card glass animate-on-scroll">
+        <div class="level-num">1</div>
+        <span class="level-tag">Level 1 — Guided</span>
+        <h3>Full Visual Prompts</h3>
+        <p>Visual prompts and suggested responses are provided at every step.</p>
+        <div class="guidance-bar"><div class="guidance-fill"></div></div>
+        <div class="guidance-label"><span>Guidance Required</span><span>High</span></div>
+      </div>
+      <div class="diff-card glass animate-on-scroll">
+        <div class="level-num">2</div>
+        <span class="level-tag">Level 2 — Supported</span>
+        <h3>Limited Hints</h3>
+        <p>Only limited hints are provided when the learner needs assistance.</p>
+        <div class="guidance-bar"><div class="guidance-fill"></div></div>
+        <div class="guidance-label"><span>Guidance Required</span><span>Medium</span></div>
+      </div>
+      <div class="diff-card glass animate-on-scroll">
+        <div class="level-num">3</div>
+        <span class="level-tag">Level 3 — Independent</span>
+        <h3>Minimal Assistance</h3>
+        <p>The learner completes the situation with minimal to no assistance.</p>
+        <div class="guidance-bar"><div class="guidance-fill"></div></div>
+        <div class="guidance-label"><span>Guidance Required</span><span>Low</span></div>
+      </div>
+    </div>
+    <div class="difficulty-progression glass animate-on-scroll">
+      <h3>Progression Over Practice</h3>
+      <div class="progression-bars">
+        <div class="prog-bar-group">
+          <div class="prog-label"><span>After Attempt 1</span><span style="color:var(--red-soft)">High Guidance</span></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:85%;background:linear-gradient(90deg,#ef4444,#f87171)"></div></div>
+        </div>
+        <div class="prog-arrow">↓ Practice</div>
+        <div class="prog-bar-group">
+          <div class="prog-label"><span>After Attempt 5</span><span style="color:var(--amber)">Medium Guidance</span></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:50%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div></div>
+        </div>
+        <div class="prog-arrow">↓ Practice</div>
+        <div class="prog-bar-group">
+          <div class="prog-label"><span>After Attempt 10</span><span style="color:var(--green)">Low Guidance</span></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:20%;background:linear-gradient(90deg,#22c55e,#4ade80)"></div></div>
+        </div>
+      </div>
+      <p style="color:var(--green);margin-top:20px;font-weight:600">Independence ↑</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== 8. SKILL FINGERPRINT ======================== -->
+<section class="section skill-fingerprint" id="skills">
+  <div class="container">
+    <div class="animate-on-scroll">
+      <div class="section-label">🎯 Skill Tracking</div>
+      <h2 class="section-title">Skill Fingerprint</h2>
+      <p class="section-subtitle">Track progress across multiple dimensions — not just right or wrong answers.</p>
+    </div>
+    <div class="fingerprint-layout">
+      <div class="radar-container animate-on-scroll">
+        <canvas id="radarChart" width="420" height="420"></canvas>
+      </div>
+      <div class="skill-details">
+        <div class="skill-row animate-on-scroll">
+          <span class="s-name">Communication</span>
+          <div class="s-bar"><div class="s-bar-fill" style="width:72%;background:var(--purple-light)"></div></div>
+          <span class="s-pct" style="color:var(--purple-light)">72%</span>
+        </div>
+        <div class="skill-row animate-on-scroll">
+          <span class="s-name">Decision Making</span>
+          <div class="s-bar"><div class="s-bar-fill" style="width:64%;background:var(--blue)"></div></div>
+          <span class="s-pct" style="color:var(--blue)">64%</span>
+        </div>
+        <div class="skill-row animate-on-scroll">
+          <span class="s-name">Following Instructions</span>
+          <div class="s-bar"><div class="s-bar-fill" style="width:70%;background:var(--cyan)"></div></div>
+          <span class="s-pct" style="color:var(--cyan)">70%</span>
+        </div>
+        <div class="skill-row animate-on-scroll">
+          <span class="s-name">Social Interaction</span>
+          <div class="s-bar"><div class="s-bar-fill" style="width:68%;background:var(--pink)"></div></div>
+          <span class="s-pct" style="color:var(--pink)">68%</span>
+        </div>
+        <div class="skill-row animate-on-scroll">
+          <span class="s-name">Safety Awareness</span>
+          <div class="s-bar"><div class="s-bar-fill" style="width:81%;background:var(--green)"></div></div>
+          <span class="s-pct" style="color:var(--green)">81%</span>
+        </div>
+        <div class="skill-row animate-on-scroll">
+          <span class="s-name">Independence</span>
+          <div class="s-bar"><div class="s-bar-fill" style="width:55%;background:var(--amber)"></div></div>
+          <span class="s-pct" style="color:var(--amber)">55%</span>
+        </div>
+        <div class="insight-cards">
+          <div class="insight-card glass">
+            <div class="ic-label">Strongest Skill</div>
+            <div class="ic-value" style="color:var(--green)">🛡️ Safety Awareness</div>
+          </div>
+          <div class="insight-card glass">
+            <div class="ic-label">Skill to Practice</div>
+            <div class="ic-value" style="color:var(--amber)">🌱 Independence</div>
+          </div>
+          <div class="insight-card glass">
+            <div class="ic-label">Recommended Next</div>
+            <div class="ic-value" style="color:var(--purple-light)">🛒 Shopping — Reduced Guidance</div>
+          </div>
+        </div>
+        <p style="font-size:.75rem;color:var(--text-muted);margin-top:16px;font-style:italic">These are learning/progress indicators, not medical diagnoses.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== 9. EDUCATOR DASHBOARD ======================== -->
+<section class="section educator-dashboard" id="dashboard">
+  <div class="container">
+    <div class="animate-on-scroll" style="text-align:center">
+      <div class="section-label">📊 Educator View</div>
+      <h2 class="section-title">Educator Dashboard</h2>
+      <p class="section-subtitle" style="margin:0 auto">Monitor learner progress, track skill development, and get practice recommendations.</p>
+    </div>
+    <div class="view-tabs">
+      <button class="view-tab active" onclick="switchView('educator')">Educator View</button>
+      <button class="view-tab" onclick="switchView('parent')">Parent / Caregiver View</button>
+    </div>
+
+    <!-- Educator Panel -->
+    <div class="view-panel active" id="educatorPanel">
+      <div class="dash-layout">
+        <div class="dash-stat glass animate-on-scroll">
+          <div class="ds-icon">👥</div>
+          <div class="ds-num">12</div>
+          <div class="ds-label">Active Learners</div>
+        </div>
+        <div class="dash-stat glass animate-on-scroll">
+          <div class="ds-icon">🎮</div>
+          <div class="ds-num">87</div>
+          <div class="ds-label">Scenario Attempts</div>
+        </div>
+        <div class="dash-stat glass animate-on-scroll">
+          <div class="ds-icon">📈</div>
+          <div class="ds-num">74%</div>
+          <div class="ds-label">Avg Skill Progress</div>
+        </div>
+        <div class="dash-stat glass animate-on-scroll">
+          <div class="ds-icon">🤝</div>
+          <div class="ds-num">62%</div>
+          <div class="ds-label">Independent Responses</div>
+        </div>
+      </div>
+
+      <div class="learner-card glass animate-on-scroll">
+        <h3><span class="avatar">A</span> Learner A — Recent Activity</h3>
+        <div class="learner-skills">
+          <div class="l-skill">
+            <div class="ls-name">Communication</div>
+            <div class="ls-bar"><div class="ls-fill" style="width:72%;background:var(--purple-light)"></div></div>
+            <div class="ls-pct" style="color:var(--purple-light)">72%</div>
+          </div>
+          <div class="l-skill">
+            <div class="ls-name">Decision Making</div>
+            <div class="ls-bar"><div class="ls-fill" style="width:64%;background:var(--blue)"></div></div>
+            <div class="ls-pct" style="color:var(--blue)">64%</div>
+          </div>
+          <div class="l-skill">
+            <div class="ls-name">Safety Awareness</div>
+            <div class="ls-bar"><div class="ls-fill" style="width:81%;background:var(--green)"></div></div>
+            <div class="ls-pct" style="color:var(--green)">81%</div>
+          </div>
+        </div>
+        <div class="attempt-timeline">
+          <h4>Shopping Scenario — Progress</h4>
+          <div class="attempt-row">
+            <div class="ar-num">1</div>
+            <div class="ar-info">
+              <div class="ar-scene">Shopping Attempt 1</div>
+              <div class="ar-desc">High guidance needed • 2 independent actions</div>
+            </div>
+          </div>
+          <div class="attempt-row">
+            <div class="ar-num">2</div>
+            <div class="ar-info">
+              <div class="ar-scene">Shopping Attempt 2</div>
+              <div class="ar-desc">Moderate guidance • 4 independent actions</div>
+            </div>
+          </div>
+          <div class="attempt-row">
+            <div class="ar-num">3</div>
+            <div class="ar-info">
+              <div class="ar-scene">Shopping Attempt 3</div>
+              <div class="ar-desc">Low guidance • 6 independent actions</div>
+            </div>
+          </div>
+        </div>
+        <div class="recommended-panel">
+          <h4>💡 Recommended Practice</h4>
+          <div class="rec-items">
+            <div class="rec-item">
+              <span class="ri-icon">🛒</span>
+              <span class="ri-text">Repeat Shopping Scenario at Level 2</span>
+              <span class="ri-tag">Priority</span>
+            </div>
+            <div class="rec-item">
+              <span class="ri-icon">🚦</span>
+              <span class="ri-text">Introduce Road Crossing at Level 1</span>
+              <span class="ri-tag">New</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Parent Panel -->
+    <div class="view-panel" id="parentPanel">
+      <div class="parent-grid">
+        <div class="parent-card glass animate-on-scroll">
+          <div class="pc-icon">📅</div>
+          <h3>Today's Practice</h3>
+          <p>Completed <strong>2 scenarios</strong> today — Classroom and Shopping.</p>
+          <div class="pc-highlight"><span>✅ Great progress this session!</span></div>
+        </div>
+        <div class="parent-card glass animate-on-scroll">
+          <div class="pc-icon">🎯</div>
+          <h3>Completed Scenarios</h3>
+          <p><strong>14 total</strong> scenario sessions completed this week.</p>
+          <div class="pc-highlight"><span>📈 3 more than last week</span></div>
+        </div>
+        <div class="parent-card glass animate-on-scroll">
+          <div class="pc-icon">🌟</div>
+          <h3>Current Skill Progress</h3>
+          <p>Communication skills improving. Independence growing steadily.</p>
+          <div class="pc-highlight"><span>🌟 Strongest: Safety Awareness</span></div>
+        </div>
+        <div class="parent-card glass animate-on-scroll">
+          <div class="pc-icon">💡</div>
+          <h3>Practice Recommendations</h3>
+          <p>Continue with Shopping scenario. Ready to try Bus Stop next week.</p>
+          <div class="pc-highlight"><span>🌱 Learning Progress: On Track</span></div>
+        </div>
+      </div>
+      <p style="font-size:.8rem;color:var(--text-muted);text-align:center;margin-top:24px;font-style:italic">Learning progress indicators — not clinical assessment.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== 11. FEEDBACK ENGINE ======================== -->
+<section class="section" id="feedback">
+  <div class="container">
+    <div class="animate-on-scroll" style="text-align:center">
+      <div class="section-label">💬 Supportive Learning</div>
+      <h2 class="section-title">The Feedback Engine</h2>
+      <p class="section-subtitle" style="margin:0 auto">ISE never punishes mistakes. Every response is an opportunity to learn.</p>
+    </div>
+    <div class="feedback-comparison">
+      <div class="fb-box fb-wrong glass animate-on-scroll">
+        <div class="fb-title">❌ What ISE Does NOT Do</div>
+        <div class="fb-example">
+          <div class="bad">❌ WRONG</div>
+          <div class="bad">❌ FAILURE</div>
+          <div class="bad">❌ LOW SCORE</div>
+        </div>
+      </div>
+      <div class="fb-box fb-right glass animate-on-scroll">
+        <div class="fb-title">✅ What ISE Does</div>
+        <div class="fb-example">
+          <div class="good">💬 "Let's try that again."</div>
+          <div class="hint-msg">💡 You can ask: "How much does this cost?"</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== 12. PROGRESS COMPARISON ======================== -->
+<section class="section progress-comparison" id="progress">
+  <div class="container">
+    <div class="animate-on-scroll" style="text-align:center">
+      <div class="section-label">📈 Measurable Growth</div>
+      <h2 class="section-title">Progress After Multiple Attempts</h2>
+      <p class="section-subtitle" style="margin:0 auto">Scenario: Shopping — Watch how independence improves with practice.</p>
+    </div>
+    <div class="comparison-grid">
+      <div class="comparison-card glass animate-on-scroll">
+        <div class="cc-num">Attempt 1</div>
+        <div class="cc-label">First Try</div>
+        <div class="cc-bar"><div class="cc-bar-fill"></div></div>
+        <div class="cc-info">Guidance: High<br>Independent actions: 2</div>
+      </div>
+      <div class="comparison-card glass animate-on-scroll">
+        <div class="cc-num">Attempt 2</div>
+        <div class="cc-label">With Practice</div>
+        <div class="cc-bar"><div class="cc-bar-fill"></div></div>
+        <div class="cc-info">Guidance: Medium<br>Independent actions: 4</div>
+      </div>
+      <div class="comparison-card glass animate-on-scroll">
+        <div class="cc-num">Attempt 3</div>
+        <div class="cc-label">Growing Independence</div>
+        <div class="cc-bar"><div class="cc-bar-fill"></div></div>
+        <div class="cc-info">Guidance: Low<br>Independent actions: 6</div>
+      </div>
+    </div>
+    <div class="progress-cta glass animate-on-scroll">
+      <h3 style="margin-bottom:8px">Progress Toward Independent Completion</h3>
+      <div class="overall-bar"><div class="overall-fill" id="overallProgress" style="width:0%"></div></div>
+      <div class="overall-label">Overall independence growing with each attempt</div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== 13. VR CONCEPT ======================== -->
+<section class="section vr-concept" id="vr">
+  <div class="container">
+    <div class="animate-on-scroll" style="text-align:center">
+      <div class="section-label">🥽 Future Vision</div>
+      <h2 class="section-title">Designed for Immersive Learning</h2>
+      <p class="section-subtitle" style="margin:0 auto">This prototype represents the interaction layer of a future VR experience.</p>
+    </div>
+    <div class="vr-flow animate-on-scroll">
+      <div class="vr-step glass"><div class="vs-icon">🌐</div><div class="vs-text">Web Prototype</div></div>
+      <span class="vr-arrow">→</span>
+      <div class="vr-step glass"><div class="vs-icon">⚙️</div><div class="vs-text">Scenario Engine</div></div>
+      <span class="vr-arrow">→</span>
+      <div class="vr-step glass"><div class="vs-icon">🥽</div><div class="vs-text">VR Environment</div></div>
+      <span class="vr-arrow">→</span>
+      <div class="vr-step glass"><div class="vs-icon">📊</div><div class="vs-text">Skill Tracking</div></div>
+      <span class="vr-arrow">→</span>
+      <div class="vr-step glass"><div class="vs-icon">💻</div><div class="vs-text">Educator Dashboard</div></div>
+    </div>
+    <div class="vr-note animate-on-scroll">
+      <p><strong>Current prototype demonstrates</strong> the interaction and adaptive-learning concept that can be extended into a Unity-based VR application.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== 14. SYSTEM ARCHITECTURE ======================== -->
+<section class="section architecture" id="architecture">
+  <div class="container">
+    <div class="animate-on-scroll" style="text-align:center">
+      <div class="section-label">🏗️ Technical Design</div>
+      <h2 class="section-title">System Architecture</h2>
+      <p class="section-subtitle" style="margin:0 auto">How ISE connects learners, environments, and educators.</p>
+    </div>
+    <div class="arch-flow animate-on-scroll">
+      <div class="arch-node">👤 Child</div>
+      <div class="arch-arrow"></div>
+      <div class="arch-node">🌐 VR / Interactive Environment</div>
+      <div class="arch-arrow"></div>
+      <div class="arch-node">⚙️ Scenario Engine</div>
+      <div class="arch-arrow"></div>
+      <div class="arch-node">🤔 Decision & Response</div>
+      <div class="arch-arrow"></div>
+      <div class="arch-node">🧠 Adaptive Skill Engine</div>
+      <div class="arch-arrow"></div>
+      <div class="arch-node">💾 Progress Database</div>
+      <div class="arch-arrow"></div>
+      <div class="arch-node">📊 Educator / Caregiver Dashboard</div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== 15. PRIVACY & SAFETY ======================== -->
+<section class="section privacy" id="privacy">
+  <div class="container">
+    <div class="animate-on-scroll" style="text-align:center">
+      <div class="section-label">🛡️ Trust & Safety</div>
+      <h2 class="section-title">Built Around the Learner</h2>
+      <p class="section-subtitle" style="margin:0 auto">Every design decision prioritizes the learner's wellbeing, privacy, and dignity.</p>
+    </div>
+    <div class="privacy-grid">
+      <div class="privacy-item glass animate-on-scroll">
+        <div class="pi-icon">🔒</div>
+        <h4>Minimal Data Collection</h4>
+        <p>Only essential learning progress data is stored.</p>
+      </div>
+      <div class="privacy-item glass animate-on-scroll">
+        <div class="pi-icon">👁️</div>
+        <h4>Parent / Educator Supervision</h4>
+        <p>Always available for oversight and support.</p>
+      </div>
+      <div class="privacy-item glass animate-on-scroll">
+        <div class="pi-icon">♿</div>
+        <h4>Accessible Interface</h4>
+        <p>Designed for learners of all abilities.</p>
+      </div>
+      <div class="privacy-item glass animate-on-scroll">
+        <div class="pi-icon">💚</div>
+        <h4>Supportive Feedback</h4>
+        <p>Never punitive — always encouraging.</p>
+      </div>
+      <div class="privacy-item glass animate-on-scroll">
+        <div class="pi-icon">🤝</div>
+        <h4>Non-Stigmatizing Design</h4>
+        <p>Looks and feels like a positive experience.</p>
+      </div>
+      <div class="privacy-item glass animate-on-scroll">
+        <div class="pi-icon">🔐</div>
+        <h4>Privacy-Conscious Tracking</h4>
+        <p>Progress data stays secure and private.</p>
+      </div>
+    </div>
+    <div class="privacy-disclaimer animate-on-scroll">
+      <p>"ISE supports learning and practice. It does not diagnose or treat ASD or ID."</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== 16. FINAL CTA ======================== -->
+<section class="final-cta" id="finalCta">
+  <div class="container">
+    <h2 class="animate-on-scroll">Everyday situations can be practiced.<br><span class="gradient-text">Independence can be built.</span></h2>
+    <p class="subtitle animate-on-scroll">Try a scenario or explore the educator dashboard.</p>
+    <div class="cta-buttons animate-on-scroll">
+      <a href="#scenarios" class="btn btn-primary">Try a Scenario</a>
+      <a href="#dashboard" class="btn btn-secondary">View Educator Dashboard</a>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== FOOTER ======================== -->
+<footer>
+  <div class="container">
+    <p class="footer-tagline">ISE — Interactive Skills Enhancer</p>
+    <p>Practice safely. Learn independently. Grow confidently.</p>
+    <p style="margin-top:8px;font-size:.75rem;color:var(--text-muted)">Built for hackathon demonstration purposes.</p>
+  </div>
+</footer>
+
+<script>
+/* ======================== NAV SCROLL ======================== */
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+/* ======================== SCROLL ANIMATIONS ======================== */
+const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -40px 0px' };
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 80);
+      observer.unobserve(entry.target);
+    }
+  });
+}, observerOptions);
+document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+
+/* ======================== VIEW TABS ======================== */
+function switchView(view) {
+  document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+  var tabs = document.querySelectorAll('.view-tab');
+  var idx = view === 'parent' ? 1 : 0;
+  if (tabs[idx]) tabs[idx].classList.add('active');
+  document.getElementById(view + 'Panel').classList.add('active');
+}
+
+/* ======================== RADAR CHART ======================== */
+function drawRadar() {
+  const canvas = document.getElementById('radarChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = 420 * dpr;
+  canvas.height = 420 * dpr;
+  ctx.scale(dpr, dpr);
+
+  const cx = 210, cy = 210, r = 150;
+  const skills = [
+    { name: 'Communication', val: 72, color: '#8b5cf6' },
+    { name: 'Decision Making', val: 64, color: '#3b82f6' },
+    { name: 'Following\nInstructions', val: 70, color: '#06b6d4' },
+    { name: 'Social\nInteraction', val: 68, color: '#ec4899' },
+    { name: 'Safety\nAwareness', val: 81, color: '#22c55e' },
+    { name: 'Independence', val: 55, color: '#f59e0b' }
+  ];
+  const n = skills.length;
+  const angleStep = (Math.PI * 2) / n;
+  const startAngle = -Math.PI / 2;
+
+  // Grid rings
+  [0.25, 0.5, 0.75, 1].forEach(scale => {
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const a = startAngle + i * angleStep;
+      const x = cx + Math.cos(a) * r * scale;
+      const y = cy + Math.sin(a) * r * scale;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+
+  // Axes
+  for (let i = 0; i < n; i++) {
+    const a = startAngle + i * angleStep;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Data area
+  ctx.beginPath();
+  skills.forEach((s, i) => {
+    const a = startAngle + i * angleStep;
+    const x = cx + Math.cos(a) * r * (s.val / 100);
+    const y = cy + Math.sin(a) * r * (s.val / 100);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(108,60,224,0.15)';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(139,92,246,0.7)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Data points & labels
+  skills.forEach((s, i) => {
+    const a = startAngle + i * angleStep;
+    const x = cx + Math.cos(a) * r * (s.val / 100);
+    const y = cy + Math.sin(a) * r * (s.val / 100);
+
+    // Point
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = s.color;
+    ctx.fill();
+    ctx.strokeStyle = '#0a0e27';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Label
+    const lx = cx + Math.cos(a) * (r + 30);
+    const ly = cy + Math.sin(a) * (r + 30);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '12px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const lines = s.name.split('\n');
+    lines.forEach((line, li) => {
+      ctx.fillText(line, lx, ly + li * 14 - (lines.length - 1) * 7);
+    });
+  });
+}
+drawRadar();
+
+/* ======================== PROGRESS BAR ANIMATION ======================== */
+const progObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      setTimeout(() => {
+        document.getElementById('overallProgress').style.width = '78%';
+      }, 500);
+      progObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.3 });
+const progEl = document.getElementById('overallProgress');
+if (progEl) progObserver.observe(progEl);
+
+/* ======================== CLASSROOM SIMULATION ======================== */
+const classroomSteps = [
+  {
+    speaker: 'Teacher',
+    message: 'Good morning! How are you?',
+    choices: [
+      { text: '"Good morning!"', correct: true, feedback: 'Great! You responded appropriately.', hint: null },
+      { text: '"I am good."', correct: true, feedback: 'That\'s a nice response! You greeted your teacher back.', hint: null },
+      { text: '"I don\'t know."', correct: false, feedback: 'Let\'s try that again.', hint: 'Try saying: "Good morning!" or "I am good."' }
+    ]
+  },
+  {
+    speaker: 'Teacher',
+    message: 'Can you please raise your hand if you need help?',
+    choices: [
+      { text: '"Okay, I will!"', correct: true, feedback: 'Perfect! You acknowledged the instruction.', hint: null },
+      { text: 'Raised hand ✋', correct: true, feedback: 'Excellent! You followed the instruction perfectly.', hint: null },
+      { text: 'Ignores instruction', correct: false, feedback: 'Let\'s try that again.', hint: 'Try raising your hand or saying "Okay, I will!"' }
+    ]
+  },
+  {
+    speaker: 'Teacher',
+    message: 'What is 3 + 2?',
+    choices: [
+      { text: '"5"', correct: true, feedback: 'Well done! That\'s correct!', hint: null },
+      { text: '"4"', correct: false, feedback: 'Close! Let\'s try again.', hint: 'Count on your fingers: 1, 2, 3... then 4, 5!' },
+      { text: '"I need help."', correct: true, feedback: 'Good job asking for help when you need it!', hint: null }
+    ]
+  }
+];
+
+var classroomStep = 0;
+var classroomScores = { communication: 0, following: 0, confidence: 0 };
+var classroomTotal = 0;
+
+function openSimulation(type) {
+  if (type === 'classroom') {
+    classroomStep = 0;
+    classroomScores = { communication: 0, following: 0, confidence: 0 };
+    classroomTotal = 0;
+    document.getElementById('classroomSim').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    renderClassroomStep();
+  } else if (type === 'shopping') {
+    shoppingStep = 0;
+    shoppingScores = { communication: 0, decision: 0, independence: 0 };
+    shoppingTotal = 0;
+    document.getElementById('shoppingSim').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    renderShoppingStep();
+  } else if (type === 'roadcrossing') {
+    roadcrossingStep = 0;
+    roadcrossingScores = { safety: 0, following: 0, independence: 0 };
+    roadcrossingTotal = 0;
+    document.getElementById('roadcrossingSim').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    renderRoadcrossingStep();
+  } else if (type === 'busstop') {
+    busstopStep = 0;
+    busstopScores = { communication: 0, following: 0, independence: 0 };
+    busstopTotal = 0;
+    document.getElementById('busstopSim').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    renderBusstopStep();
+  }
+}
+
+function closeSimulation(type) {
+  document.getElementById(type + 'Sim').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function renderClassroomStep() {
+  const body = document.getElementById('classroomBody');
+  if (classroomStep >= classroomSteps.length) {
+    // Show results
+    const commPct = Math.round((classroomScores.communication / classroomTotal) * 100) || 75;
+    const follPct = Math.round((classroomScores.following / classroomTotal) * 100) || 65;
+    const confPct = Math.round((classroomScores.confidence / classroomTotal) * 100) || 80;
+    body.innerHTML = `
+      <h3 style="text-align:center;margin-bottom:24px">🎉 Scenario Complete!</h3>
+      <div class="skill-results">
+        <div class="skill-result-item">
+          <div class="skill-name">Communication</div>
+          <div class="stars">${'★'.repeat(Math.round(commPct/20))}${'<span class="empty">★</span>'.repeat(5 - Math.round(commPct/20))}</div>
+          <div style="font-size:.8rem;color:var(--text-muted);margin-top:4px">${commPct}%</div>
+        </div>
+        <div class="skill-result-item">
+          <div class="skill-name">Following Instructions</div>
+          <div class="stars">${'★'.repeat(Math.round(follPct/20))}${'<span class="empty">★</span>'.repeat(5 - Math.round(follPct/20))}</div>
+          <div style="font-size:.8rem;color:var(--text-muted);margin-top:4px">${follPct}%</div>
+        </div>
+        <div class="skill-result-item">
+          <div class="skill-name">Confidence</div>
+          <div class="stars">${'★'.repeat(Math.round(confPct/20))}${'<span class="empty">★</span>'.repeat(5 - Math.round(confPct/20))}</div>
+          <div style="font-size:.8rem;color:var(--text-muted);margin-top:4px">${confPct}%</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:24px">
+        <button class="btn btn-primary" onclick="classroomStep=0;classroomScores={communication:0,following:0,confidence:0};classroomTotal=0;renderClassroomStep()">🔄 Try Again</button>
+        <button class="btn btn-secondary" onclick="closeSimulation('classroom')" style="margin-left:12px">Close</button>
+      </div>`;
+    return;
+  }
+
+  const step = classroomSteps[classroomStep];
+  const letters = ['A', 'B', 'C'];
+  body.innerHTML = `
+    <div class="speech-bubble">
+      <div class="speaker">${step.speaker}</div>
+      <div class="message">${step.message}</div>
+    </div>
+    <div class="response-choices">
+      ${step.choices.map((c, i) => `
+        <button class="response-btn" onclick="handleClassroomChoice(${i})">
+          <span class="btn-letter">${letters[i]}</span>
+          <span>${c.text}</span>
+        </button>
+      `).join('')}
+    </div>
+    <div style="text-align:center;margin-top:12px;color:var(--text-muted);font-size:.85rem">
+      Step ${classroomStep + 1} of ${classroomSteps.length}
+    </div>`;
+}
+
+function handleClassroomChoice(idx) {
+  const step = classroomSteps[classroomStep];
+  const choice = step.choices[idx];
+  classroomTotal++;
+
+  const btns = document.querySelectorAll('#classroomBody .response-btn');
+  btns.forEach((btn, i) => {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    if (step.choices[i].correct) btn.classList.add('correct');
+    if (i === idx && !choice.correct) btn.classList.add('needs-practice');
+  });
+
+  if (choice.correct) {
+    classroomScores.communication += 1;
+    classroomScores.following += 1;
+    classroomScores.confidence += 1;
+  }
+
+  const feedbackHTML = `
+    <div class="feedback-box ${choice.correct ? 'positive' : 'gentle'}">
+      <div class="fb-icon">${choice.correct ? '🌟' : '💬'}</div>
+      <div class="fb-text">${choice.feedback}</div>
+      ${choice.hint ? `<div class="fb-hint">💡 Hint: ${choice.hint}</div>` : ''}
+    </div>
+    <div style="text-align:center;margin-top:16px">
+      <button class="btn btn-primary btn-sm" onclick="classroomStep++;renderClassroomStep()">
+        ${classroomStep < classroomSteps.length - 1 ? 'Next →' : 'See Results'}
+      </button>
+    </div>`;
+
+  const choicesDiv = document.querySelector('#classroomBody .response-choices');
+  choicesDiv.insertAdjacentHTML('afterend', feedbackHTML);
+}
+
+/* ======================== SHOPPING SIMULATION ======================== */
+const shoppingSteps = [
+  {
+    speaker: 'Cashier',
+    message: 'Hello! Welcome to the shop. What would you like?',
+    choices: [
+      { text: '"Hello! I want this please."', correct: true, feedback: 'Great greeting and request!', hint: null },
+      { text: '"This one."', correct: true, feedback: 'Good choice! You selected an item.', hint: 'Try adding a greeting: "Hello!"' },
+      { text: 'Points without speaking', correct: false, feedback: 'Let\'s try using our words.', hint: 'Try saying: "I want this please."' }
+    ]
+  },
+  {
+    speaker: 'Cashier',
+    message: 'Sure! Here it is. Would you like anything else?',
+    choices: [
+      { text: '"No thank you, that\'s all."', correct: true, feedback: 'Perfect polite response!', hint: null },
+      { text: '"How much does it cost?"', correct: true, feedback: 'Great question! Asking about price is smart.', hint: null },
+      { text: '"Um..."', correct: false, feedback: 'Let\'s try again.', hint: 'Try saying: "No thank you" or "How much does it cost?"' }
+    ]
+  },
+  {
+    speaker: 'Cashier',
+    message: 'That will be $3.50 please.',
+    choices: [
+      { text: '"Here you go!"', correct: true, feedback: 'Excellent! You completed the payment.', hint: null },
+      { text: '"Thank you!"', correct: true, feedback: 'Wonderful manners! Polite closing.', hint: null },
+      { text: 'Walks away', correct: false, feedback: 'Let\'s try to complete the payment.', hint: 'Try saying: "Here you go!" or "Thank you!"' }
+    ]
+  },
+  {
+    speaker: 'Cashier',
+    message: 'Here\'s your item. Have a great day!',
+    choices: [
+      { text: '"Thank you! You too!"', correct: true, feedback: 'Perfect! You completed the whole scenario!', hint: null },
+      { text: '"Bye!"', correct: true, feedback: 'Goodbye! Nice and simple.', hint: null },
+      { text: 'Takes item silently', correct: false, feedback: 'Let\'s try a closing word.', hint: 'Try saying: "Thank you!"' }
+    ]
+  }
+];
+
+var shoppingStep = 0;
+var shoppingScores = { communication: 0, decision: 0, independence: 0 };
+var shoppingTotal = 0;
+
+function renderShoppingStep() {
+  const body = document.getElementById('shoppingBody');
+  if (shoppingStep >= shoppingSteps.length) {
+    const commPct = Math.round((shoppingScores.communication / shoppingTotal) * 100) || 70;
+    const decPct = Math.round((shoppingScores.decision / shoppingTotal) * 100) || 75;
+    const indPct = Math.round((shoppingScores.independence / shoppingTotal) * 100) || 65;
+    body.innerHTML = `
+      <h3 style="text-align:center;margin-bottom:24px">🎉 Shopping Complete!</h3>
+      <div class="skill-results">
+        <div class="skill-result-item">
+          <div class="skill-name">Communication</div>
+          <div class="stars">${'★'.repeat(Math.round(commPct/20))}${'<span class="empty">★</span>'.repeat(5 - Math.round(commPct/20))}</div>
+          <div style="font-size:.8rem;color:var(--text-muted);margin-top:4px">${commPct}%</div>
+        </div>
+        <div class="skill-result-item">
+          <div class="skill-name">Decision Making</div>
+          <div class="stars">${'★'.repeat(Math.round(decPct/20))}${'<span class="empty">★</span>'.repeat(5 - Math.round(decPct/20))}</div>
+          <div style="font-size:.8rem;color:var(--text-muted);margin-top:4px">${decPct}%</div>
+        </div>
+        <div class="skill-result-item">
+          <div class="skill-name">Independence</div>
+          <div class="stars">${'★'.repeat(Math.round(indPct/20))}${'<span class="empty">★</span>'.repeat(5 - Math.round(indPct/20))}</div>
+          <div style="font-size:.8rem;color:var(--text-muted);margin-top:4px">${indPct}%</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:24px">
+        <button class="btn btn-primary" onclick="shoppingStep=0;shoppingScores={communication:0,decision:0,independence:0};shoppingTotal=0;renderShoppingStep()">🔄 Try Again</button>
+        <button class="btn btn-secondary" onclick="closeSimulation('shopping')" style="margin-left:12px">Close</button>
+      </div>`;
+    return;
+  }
+
+  const step = shoppingSteps[shoppingStep];
+  const letters = ['A', 'B', 'C'];
+  body.innerHTML = `
+    <div class="speech-bubble">
+      <div class="speaker">${step.speaker}</div>
+      <div class="message">${step.message}</div>
+    </div>
+    <div class="response-choices">
+      ${step.choices.map((c, i) => `
+        <button class="response-btn" onclick="handleShoppingChoice(${i})">
+          <span class="btn-letter">${letters[i]}</span>
+          <span>${c.text}</span>
+        </button>
+      `).join('')}
+    </div>
+    <div style="text-align:center;margin-top:12px;color:var(--text-muted);font-size:.85rem">
+      Step ${shoppingStep + 1} of ${shoppingSteps.length}
+    </div>`;
+}
+
+function handleShoppingChoice(idx) {
+  const step = shoppingSteps[shoppingStep];
+  const choice = step.choices[idx];
+  shoppingTotal++;
+
+  const btns = document.querySelectorAll('#shoppingBody .response-btn');
+  btns.forEach((btn, i) => {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    if (step.choices[i].correct) btn.classList.add('correct');
+    if (i === idx && !choice.correct) btn.classList.add('needs-practice');
+  });
+
+  if (choice.correct) {
+    shoppingScores.communication += 1;
+    shoppingScores.decision += 1;
+    shoppingScores.independence += 1;
+  }
+
+  const feedbackHTML = `
+    <div class="feedback-box ${choice.correct ? 'positive' : 'gentle'}">
+      <div class="fb-icon">${choice.correct ? '🌟' : '💬'}</div>
+      <div class="fb-text">${choice.feedback}</div>
+      ${choice.hint ? `<div class="fb-hint">💡 Hint: ${choice.hint}</div>` : ''}
+    </div>
+    <div style="text-align:center;margin-top:16px">
+      <button class="btn btn-primary btn-sm" onclick="shoppingStep++;renderShoppingStep()">
+        ${shoppingStep < shoppingSteps.length - 1 ? 'Next →' : 'See Results'}
+      </button>
+    </div>`;
+
+  const choicesDiv = document.querySelector('#shoppingBody .response-choices');
+  choicesDiv.insertAdjacentHTML('afterend', feedbackHTML);
+}
+
+/* ======================== ROAD CROSSING SIMULATION ======================== */
+var roadcrossingStep = 0;
+var roadcrossingScores = { safety: 0, following: 0, independence: 0 };
+var roadcrossingTotal = 0;
+
+const roadcrossingSteps = [
+  {
+    speaker: 'Crossing Guard',
+    message: 'You are at a crosswalk. The traffic light is RED. What do you do?',
+    choices: [
+      { text: '"I will wait for the green light."', correct: true, feedback: 'Great! Waiting for the green light is the safest choice.', hint: null },
+      { text: '"I want to cross now."', correct: false, feedback: "Let's try that again.", hint: 'Try saying: "I will wait for the green light."' },
+      { text: 'Runs across the road', correct: false, feedback: 'Running across is not safe. Let us try again.', hint: 'Try saying: "I will wait for the green light."' }
+    ]
+  },
+  {
+    speaker: 'Crossing Guard',
+    message: 'The light is still RED. There are cars coming. What should you do?',
+    choices: [
+      { text: '"I will stay on the sidewalk."', correct: true, feedback: 'Perfect! Staying on the sidewalk keeps you safe.', hint: null },
+      { text: '"I will look for a gap."', correct: false, feedback: 'Looking for gaps can be dangerous. Let us try a safer choice.', hint: 'Try saying: "I will stay on the sidewalk."' },
+      { text: 'Steps onto the road', correct: false, feedback: 'Stepping onto the road with cars is not safe.', hint: 'Try saying: "I will stay on the sidewalk."' }
+    ]
+  },
+  {
+    speaker: 'Crossing Guard',
+    message: 'The light just turned GREEN! Is it safe to cross right away?',
+    choices: [
+      { text: '"I will look both ways first!"', correct: true, feedback: 'Excellent! Always look both ways, even when the light is green.', hint: null },
+      { text: '"I will cross immediately!"', correct: false, feedback: 'It is important to look first, even with a green light.', hint: 'Try saying: "I will look both ways first!"' },
+      { text: '"I will wait more."', correct: false, feedback: 'Good patience! But the green light means it is time to cross safely.', hint: 'Try: "I will look both ways first!" then cross.' }
+    ]
+  },
+  {
+    speaker: 'Crossing Guard',
+    message: 'You looked both ways and the road is clear! Now cross the road.',
+    choices: [
+      { text: 'Walks across carefully', correct: true, feedback: 'Well done! You crossed safely by walking carefully!', hint: null },
+      { text: 'Runs across quickly', correct: false, feedback: 'Walking is safer than running. Let us try crossing carefully.', hint: 'Try walking slowly and carefully across the road.' },
+      { text: 'Does not cross', correct: false, feedback: 'You can cross now — the road is clear and the light is green!', hint: 'Try walking slowly and carefully across the road.' }
+    ]
+  }
+];
+
+function renderRoadcrossingStep() {
+  var body = document.getElementById('roadcrossingBody');
+  if (roadcrossingStep >= roadcrossingSteps.length) {
+    var safePct = Math.round((roadcrossingScores.safety / roadcrossingTotal) * 100) || 75;
+    var follPct = Math.round((roadcrossingScores.following / roadcrossingTotal) * 100) || 70;
+    var indPct = Math.round((roadcrossingScores.independence / roadcrossingTotal) * 100) || 80;
+    body.innerHTML = '<h3 style="text-align:center;margin-bottom:24px">🎉 Scenario Complete!</h3><div class="skill-results"><div class="skill-result-item"><div class="skill-name">Safety Awareness</div><div class="stars">' + '\u2605'.repeat(Math.round(safePct/20)) + '<span class="empty">\u2605</span>'.repeat(5 - Math.round(safePct/20)) + '</div><div style="font-size:.8rem;color:var(--text-muted);margin-top:4px">' + safePct + '%</div></div><div class="skill-result-item"><div class="skill-name">Following Instructions</div><div class="stars">' + '\u2605'.repeat(Math.round(follPct/20)) + '<span class="empty">\u2605</span>'.repeat(5 - Math.round(follPct/20)) + '</div><div style="font-size:.8rem;color:var(--text-muted);margin-top:4px">' + follPct + '%</div></div><div class="skill-result-item"><div class="skill-name">Independence</div><div class="stars">' + '\u2605'.repeat(Math.round(indPct/20)) + '<span class="empty">\u2605</span>'.repeat(5 - Math.round(indPct/20)) + '</div><div style="font-size:.8rem;color:var(--text-muted);margin-top:4px">' + indPct + '%</div></div></div><div style="text-align:center;margin-top:24px"><button class="btn btn-primary" onclick="roadcrossingStep=0;roadcrossingScores={safety:0,following:0,independence:0};roadcrossingTotal=0;renderRoadcrossingStep()">\u{1f504} Try Again</button><button class="btn btn-secondary" onclick="closeSimulation(\u0027roadcrossing\u0027)" style="margin-left:12px">Close</button></div>';
+    return;
+  }
+  var step = roadcrossingSteps[roadcrossingStep];
+  var letters = ['A', 'B', 'C'];
+  body.innerHTML = '<div class="speech-bubble"><div class="speaker">' + step.speaker + '</div><div class="message">' + step.message + '</div></div><div class="response-choices">' + step.choices.map(function(c, i) { return '<button class="response-btn" onclick="handleRoadcrossingChoice(' + i + ')"><span class="btn-letter">' + letters[i] + '</span><span>' + c.text + '</span></button>'; }).join('') + '</div><div style="text-align:center;margin-top:12px;color:var(--text-muted);font-size:.85rem">Step ' + (roadcrossingStep + 1) + ' of ' + roadcrossingSteps.length + '</div>';
+}
+
+function handleRoadcrossingChoice(idx) {
+  var step = roadcrossingSteps[roadcrossingStep];
+  var choice = step.choices[idx];
+  roadcrossingTotal++;
+  var btns = document.querySelectorAll('#roadcrossingBody .response-btn');
+  btns.forEach(function(btn, i) {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    if (step.choices[i].correct) btn.classList.add('correct');
+    if (i === idx && !choice.correct) btn.classList.add('needs-practice');
+  });
+  if (choice.correct) {
+    roadcrossingScores.safety += 1;
+    roadcrossingScores.following += 1;
+    roadcrossingScores.independence += 1;
+  }
+  var feedbackHTML = '<div class="feedback-box ' + (choice.correct ? 'positive' : 'gentle') + '"><div class="fb-icon">' + (choice.correct ? '\u{1f31f}' : '\u{1f4ac}') + '</div><div class="fb-text">' + choice.feedback + '</div>' + (choice.hint ? '<div class="fb-hint">\u{1f4a1} Hint: ' + choice.hint + '</div>' : '') + '</div><div style="text-align:center;margin-top:16px"><button class="btn btn-primary btn-sm" onclick="roadcrossingStep++;renderRoadcrossingStep()">' + (roadcrossingStep < roadcrossingSteps.length - 1 ? 'Next \u2192' : 'See Results') + '</button></div>';
+  var choicesDiv = document.querySelector('#roadcrossingBody .response-choices');
+  choicesDiv.insertAdjacentHTML('afterend', feedbackHTML);
+}
+
+/* ======================== BUS STOP SIMULATION ======================== */
+var busstopStep = 0;
+var busstopScores = { communication: 0, following: 0, independence: 0 };
+var busstopTotal = 0;
+
+const busstopSteps = [
+  {
+    speaker: 'Parent',
+    message: 'You are at the bus stop. The bus is not here yet. What do you do?',
+    choices: [
+      { text: '"I will wait here patiently."', correct: true, feedback: 'Great! Waiting patiently at the bus stop is the right thing to do.', hint: null },
+      { text: 'Walks into the road', correct: false, feedback: 'Walking into the road is not safe. Let us try again.', hint: 'Try saying: "I will wait here patiently."' },
+      { text: '"I am bored."', correct: false, feedback: 'Waiting can feel long, but staying at the stop keeps you safe.', hint: 'Try saying: "I will wait here patiently."' }
+    ]
+  },
+  {
+    speaker: 'Parent',
+    message: 'A bus is coming! How do you know if it is YOUR bus?',
+    choices: [
+      { text: '"I will check the bus number!"', correct: true, feedback: 'Excellent! Checking the bus number is the best way to know.', hint: null },
+      { text: '"I will get on any bus."', correct: false, feedback: 'Different buses go to different places. Let us check first.', hint: 'Try saying: "I will check the bus number!"' },
+      { text: '"I do not know."', correct: false, feedback: 'That is okay! Try looking at the number on the front of the bus.', hint: 'Try saying: "I will check the bus number!"' }
+    ]
+  },
+  {
+    speaker: 'Bus Driver',
+    message: 'Hello! The bus has arrived. How do you ask if this is the right bus?',
+    choices: [
+      { text: '"Excuse me, is this bus number 5?"', correct: true, feedback: 'Wonderful! Asking politely is perfect.', hint: null },
+      { text: 'Rushes onto the bus', correct: false, feedback: 'It is better to ask first before getting on.', hint: 'Try saying: "Excuse me, is this bus number 5?"' },
+      { text: '"Is this mine?"', correct: false, feedback: 'Good question! Try being more specific about the bus number.', hint: 'Try: "Excuse me, is this bus number 5?"' }
+    ]
+  },
+  {
+    speaker: 'Bus Driver',
+    message: 'Yes, this is bus 5! You get on the bus. What do you do now?',
+    choices: [
+      { text: '"Thank you!" and finds a seat', correct: true, feedback: 'Well done! Saying thank you and finding a seat is great!', hint: null },
+      { text: 'Stands at the door', correct: false, feedback: 'It is better to move to a seat so others can board too.', hint: 'Try saying "Thank you!" and finding a seat.' },
+      { text: '"I need a ticket."', correct: false, feedback: 'Good question! You can ask the driver, but first say thank you and find a seat.', hint: 'Try saying "Thank you!" and finding a seat.' }
+    ]
+  }
+];
+
+function renderBusstopStep() {
+  var body = document.getElementById('busstopBody');
+  if (busstopStep >= busstopSteps.length) {
+    var commPct = Math.round((busstopScores.communication / busstopTotal) * 100) || 72;
+    var follPct = Math.round((busstopScores.following / busstopTotal) * 100) || 68;
+    var indPct = Math.round((busstopScores.independence / busstopTotal) * 100) || 78;
+    body.innerHTML = '<h3 style="text-align:center;margin-bottom:24px">🎉 Scenario Complete!</h3><div class="skill-results"><div class="skill-result-item"><div class="skill-name">Communication</div><div class="stars">' + '\u2605'.repeat(Math.round(commPct/20)) + '<span class="empty">\u2605</span>'.repeat(5 - Math.round(commPct/20)) + '</div><div style="font-size:.8rem;color:var(--text-muted);margin-top:4px">' + commPct + '%</div></div><div class="skill-result-item"><div class="skill-name">Following Instructions</div><div class="stars">' + '\u2605'.repeat(Math.round(follPct/20)) + '<span class="empty">\u2605</span>'.repeat(5 - Math.round(follPct/20)) + '</div><div style="font-size:.8rem;color:var(--text-muted);margin-top:4px">' + follPct + '%</div></div><div class="skill-result-item"><div class="skill-name">Independence</div><div class="stars">' + '\u2605'.repeat(Math.round(indPct/20)) + '<span class="empty">\u2605</span>'.repeat(5 - Math.round(indPct/20)) + '</div><div style="font-size:.8rem;color:var(--text-muted);margin-top:4px">' + indPct + '%</div></div></div><div style="text-align:center;margin-top:24px"><button class="btn btn-primary" onclick="busstopStep=0;busstopScores={communication:0,following:0,independence:0};busstopTotal=0;renderBusstopStep()">\u{1f504} Try Again</button><button class="btn btn-secondary" onclick="closeSimulation(\u0027busstop\u0027)" style="margin-left:12px">Close</button></div>';
+    return;
+  }
+  var step = busstopSteps[busstopStep];
+  var letters = ['A', 'B', 'C'];
+  body.innerHTML = '<div class="speech-bubble"><div class="speaker">' + step.speaker + '</div><div class="message">' + step.message + '</div></div><div class="response-choices">' + step.choices.map(function(c, i) { return '<button class="response-btn" onclick="handleBusstopChoice(' + i + ')"><span class="btn-letter">' + letters[i] + '</span><span>' + c.text + '</span></button>'; }).join('') + '</div><div style="text-align:center;margin-top:12px;color:var(--text-muted);font-size:.85rem">Step ' + (busstopStep + 1) + ' of ' + busstopSteps.length + '</div>';
+}
+
+function handleBusstopChoice(idx) {
+  var step = busstopSteps[busstopStep];
+  var choice = step.choices[idx];
+  busstopTotal++;
+  var btns = document.querySelectorAll('#busstopBody .response-btn');
+  btns.forEach(function(btn, i) {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    if (step.choices[i].correct) btn.classList.add('correct');
+    if (i === idx && !choice.correct) btn.classList.add('needs-practice');
+  });
+  if (choice.correct) {
+    busstopScores.communication += 1;
+    busstopScores.following += 1;
+    busstopScores.independence += 1;
+  }
+  var feedbackHTML = '<div class="feedback-box ' + (choice.correct ? 'positive' : 'gentle') + '"><div class="fb-icon">' + (choice.correct ? '\u{1f31f}' : '\u{1f4ac}') + '</div><div class="fb-text">' + choice.feedback + '</div>' + (choice.hint ? '<div class="fb-hint">\u{1f4a1} Hint: ' + choice.hint + '</div>' : '') + '</div><div style="text-align:center;margin-top:16px"><button class="btn btn-primary btn-sm" onclick="busstopStep++;renderBusstopStep()">' + (busstopStep < busstopSteps.length - 1 ? 'Next \u2192' : 'See Results') + '</button></div>';
+  var choicesDiv = document.querySelector('#busstopBody .response-choices');
+  choicesDiv.insertAdjacentHTML('afterend', feedbackHTML);
+}
+
+/* ======================== CLOSE SIM ON ESC ======================== */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeSimulation('classroom');
+    closeSimulation('shopping');
+  }
+});
+
+/* ======================== SMOOTH SCROLL ======================== */
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Close mobile nav
+    document.getElementById('navLinks').classList.remove('show');
+  });
+});
+</script>
+</body>
+</html>
